@@ -1,81 +1,126 @@
 #!/bin/bash
+#1 = cliente, 2 = tipo, 3 = pasta
+if [ -z $1 ];
+    then
+        echo "======================================"
+        echo "= É obrigatório informar o cliente   ="
+        echo "======================================"
+        echo "= ./backup-web.sh cliente tipo pasta ="
+        echo "======================================"
+        echo "= Parametros para o tipo      ="
+        echo "= C (Cópia)                   ="
+        echo "= S (Sobrescrita)             ="
+        echo "= CP (Cópia para outra pasta) ="
+        echo "= I (Incremental)             ="
+        echo "==============================="
+		exit;
+fi
+if [ -z $2 ];
+    then
+        echo "======================================="
+        echo "= É obrigatório informar o tipo ! ! ! ="
+        echo "======================================="
+        echo "= ./backup-web.sh cliente tipo pasta  ="
+        echo "======================================="
+        echo "= Parametros para o tipo      ="
+        echo "= C (Cópia)                   ="
+        echo "= S (Sobrescrita)             ="
+        echo "= CP (Cópia para outra pasta) ="
+        echo "= I (Incremental)             ="
+        echo "==============================="
+		exit;
+fi
+case $2 in
+            c|C)
+                echo "==========================="
+                echo "= Modo cópia selecionado! ="
+                echo "==========================="
+            ;;
+            s|S)
+                echo "================================="
+                echo "= Modo sobrescrito selecionado! ="
+                echo "================================="
+            ;;
+            i|I)
+                echo "================================="
+                echo "= Modo incremental selecionado! ="
+                echo "================================="
+            ;;
+            l|L)
+                echo "============================"
+                echo "= Modo listar selecionado! ="
+                echo "============================"
+            ;;
+            cp|CP)
+                echo "============================================"
+                echo "= Modo cópia para outra pasta selecionado! ="
+                echo "============================================"
+
+            ;;
+            *)
+                echo "==============================="
+                echo " O tipo é inválido !!!        =" 
+                echo "======================================="
+                echo "= ./backup-web.sh cliente tipo pasta  ="
+                echo "======================================="
+                echo "= Parametros para o tipo      ="
+                echo "= C (Cópia)                   ="
+                echo "= S (Sobrescrita)             ="
+                echo "= CP (Cópia para outra pasta) ="
+                echo "= I (Incremental)             ="
+                echo "==============================="
+                exit;
+            ;;
+esac
 backup="/var/backup"
 baktodo="/var/baktodo"
-#Verifica se a partição está montada
-if mount | grep $backup > /dev/null || mount | grep $baktodo > /dev/null;
-    then
-        echo "============================================================================"
-        echo "= A partição de backup está montada, deseja prosseguir mesmo assim? (S/N): ="
-        echo "============================================================================"
-        read confirmacao
-        #Se a resposta for diferente s e n, ele faz o backup.
-        while [ ${confirmacao^} != 'S' -a ${confirmacao^} != 'N' ];
-        do
-            echo "=================================================="
-            echo "= Opção inválida, deseja tentar novamente? (S/N) ="
-            echo "=================================================="
-            read confirmacao
-            if [ ${confirmacao^} != 'S' ];
-                then
-	            echo "============================"
-               	    echo "= Abortando a restauração! ="
-	            echo "============================"
-                    umount $backup
-                    umount $baktodo
-	            exit;
-            else
-                echo "============================================================================"
-                echo "= A partição de backup está montada, deseja prosseguir mesmo assim? (S/N): ="
-                echo "============================================================================"
-                read confirmacao
-	    fi
-        done
-        #Se a resposta for n/N ele desmona a partição e para o script.
-        if [ ${confirmacao^} != 'S' ];
-            then
-		echo "============================"
-                echo "= Abortando a restauração! ="
-		echo "============================"
-                exit;
-        fi
-fi
 mount $backup
 mount $baktodo
-echo "==============================="
-echo "= Informe a conta do cliente: ="
-echo "==============================="
-read cliente
-#Se o cliente não existe ele entra no looping até que informe um que exista.
-while [ -z `find $backup -iname "$cliente.tz"` > /dev/null 2>&1 ];
-    do
-        echo "==============================================================="
-        echo "= Não existe backup deste cliente, deseja tentar outro? (S/N) ="
-        echo "==============================================================="
-        read confirmacao
-        if [ ${confirmacao^} != 'S' ];
-            then
-                #Se digitar n/N ele desmonta o backup e para o script.
-	        echo "============================"
-               	echo "= Abortando a restauração! ="
-	        echo "============================"
-                umount $backup
-                umount $baktodo
+if [ -z `find $backup -iname "$1.tz"` > /dev/null 2>&1 ];
+    then
+        echo "==================================="
+        echo "= Não existe backup deste cliente ="
+        echo "==================================="
+        umount $backup
+        umount $baktodo
 		exit;
-            else
-	        echo "========================================="
-                echo "= Informe novamente a conta do cliente: ="
-                echo "========================================="
-                read cliente
-	    fi
-    done
-diretorio="/home/$cliente"
-#Informa as datas existentes para backup e cria uma array para selecionar a que você deseja..
+fi
+if [[ ($2 == 'L') || ($2 == 'l') ]];
+    then
+        echo "-------------> Listando os backups disponíveis para $1:"
+        for f in `find $backup -iname "$1.tz" | cut -f2 | cut -d'/' -f5 | cut -d'-' -f1,-2,-3 | sort | awk -F'-' '{print $3"/"$2"/"$1}'`; 
+            do 
+                echo "$f";
+        done
+        echo "============================"
+        umount $backup
+        umount $baktodo
+		exit;
+fi
+diretorio="/home/$1"
+if [[ ( -n $3 ) && ( ! -d $diretorio/$3 ) ]];
+    then
+        echo "========================================="
+        echo "= A pasta não existe na home do cliente ="
+        echo "========================================="
+        umount $backup
+        umount $baktodo
+        exit;
+fi
+if [[ ( -n $3 ) && ( ! -d $backup/$1/$3 ) ]];
+    then
+        echo "================================="
+        echo "= Não existe backup dessa pasta ="
+        echo "================================="
+        umount $backup
+        umount $baktodo
+        exit;
+fi
 echo "========================================"
 echo "= Escolha a data que deseja restaurar: ="
 echo "========================================"
 data_find=()
-#Ele lista enquanto ele achar uma data referente ao cliente e corta o resultado para exibir somente a data.
-for i in `find $backup -iname "$cliente.tz" | sort | cut -d'/' -f5`; 
+for i in `find $backup -iname "$1.tz" | sort | cut -d'/' -f5`; 
     do 
     	let inc++;
     	data_find[$inc]=$i;
@@ -83,36 +128,19 @@ for i in `find $backup -iname "$cliente.tz" | sort | cut -d'/' -f5`;
 done
 echo "========================================"
 read id_data_solicitada
-#Enquano informar um numero fora do escopo da array ele entra em um looping até que informe um número existente.
-while [ -z ${data_find[$id_data_solicitada]} ];
-    do
-        echo "=================================================="
-        echo "= Opção inválida, deseja tentar novamente? (S/N) ="
-        echo "=================================================="
-        read confirmacao
-        if [ ${confirmacao^} != 'S' ];
-            then
-                #Se digitar n/N ele desmonta o backup e para o script.
-	        echo "============================"
-               	echo "= Abortando a restauração! ="
-	        echo "============================"
-                umount $backup
-                umount $baktodo
-	        exit;
-            else
-                echo "=================================================="
-                echo "= Escolha novamente a data que deseja restaurar: ="
-                echo "=================================================="
-                read id_data_solicitada
-	    fi
-    done
-#Aloca na varíavel a data do backup solicitado.
+if [ -z ${data_find[$id_data_solicitada]} ];
+    then
+        echo "=================="
+        echo "= Opção inválida ="
+        echo "=================="
+        umount $backup
+        umount $baktodo
+        exit;
+fi
 data_solicitada="${data_find[$id_data_solicitada]}"
-#Retira a hora que fica no final da data de backup solicitada.
 data_solicitada_sem_hora="${data_solicitada:0:10}"
-#Procura em todos os mensais o mais próximo da data solicitada.
 data_solicitada_timestamp=`date -d "${data_solicitada_sem_hora}" +"%s"`
-for m in `find $backup/monthly -iname "$cliente.tz" | sort | cut -d'/' -f5`; 
+for m in `find $backup/monthly -iname "$1.tz" | sort | cut -d'/' -f5`; 
     do
         mensal[$id_mes]=$m;
         for m2 in ${mensal[*]}; 
@@ -126,8 +154,7 @@ for m in `find $backup/monthly -iname "$cliente.tz" | sort | cut -d'/' -f5`;
         done
         let id_mes++;
 done
-#Procura em todos os semanais o mais próximo da data solicitada.
-for s in `find $backup/weekly -iname "$cliente.tz" | sort | cut -d'/' -f5`; 
+for s in `find $backup/weekly -iname "$1.tz" | sort | cut -d'/' -f5`; 
     do 
         semanal[$id_semana]=$s;
         for s2 in ${semanal[*]}; 
@@ -141,8 +168,7 @@ for s in `find $backup/weekly -iname "$cliente.tz" | sort | cut -d'/' -f5`;
         done
         let id_semana++;
 done
-#Procura em todos os diarios o mais próximo da data solicitada.
-for d in `find $backup/daily -iname "$cliente.tz" | sort | cut -d'/' -f5`; 
+for d in `find $backup/daily -iname "$1.tz" | sort | cut -d'/' -f5`; 
     do 
         diario[$id_dia]=$d;
         for d2 in ${diario[*]}; 
@@ -156,7 +182,6 @@ for d in `find $backup/daily -iname "$cliente.tz" | sort | cut -d'/' -f5`;
         done
         let id_dia++;
 done
-#Transformma em timestamp caso exista a data solicitada.
 if [ -n "$mensal_mais_proximo" ];
     then
     	mensal_mais_proximo_timestamp=`date -d "${mensal_mais_proximo:0:10}" +"%s"`
@@ -165,26 +190,23 @@ if [ -n "$semanal_mais_proximo" ];
     then
     	semanal_mais_proxino_timestamp=`date -d "${semanal_mais_proximo:0:10}" +"%s"`
 fi
-#Se a data solicitada for um mensal
 if [ `find $backup -iname "$data_solicitada"` == $backup/monthly/$data_solicitada ]; 
     then    
-    	# Então ele descompacta um mensal.
     	echo "-------------> Descompactando um mensal: $data_solicitada...";
-    	tar -zxf $backup/monthly/$data_solicitada/home/$cliente.tz -g $baktodo/monthly/$data_solicitada/home/$cliente.dump -C $backup;
-# se não, e se a data solicitada for um semanal.
+    	tar -zxf $backup/monthly/$data_solicitada/home/$1.tz -g $baktodo/monthly/$data_solicitada/home/$1.dump -C $backup;
 elif [ `find $backup -iname "$data_solicitada"` == $backup/weekly/$data_solicitada ];
     then
     	#Se o mensal é mais recente que o semanal ou não tenha um mensal
     	if [ "$mensal_mais_proximo_timestamp" -gt "$semanal_mais_proxino_timestamp" ] || [ -z "$mensal_mais_proximo_timestamp" ];
         	then
         		# Então faz somente semanal.
-        		tar -zxf $backup/weekly/$data_solicitada/home/$cliente.tz -g $baktodo/weekly/$data_solicitada/home/$cliente.dump -C $backup;
+        		tar -zxf $backup/weekly/$data_solicitada/home/$1.tz -g $baktodo/weekly/$data_solicitada/home/$1.dump -C $backup;
         		echo "-------------> Descompactando um semanal: $data_solicitada...";
-        	else
+        	    else
             		#Se não, faz mensal e semanal.
             		echo "-------------> Descompactando um semanal $data_solicitada com referência do mensal $mensal_mais_proximo...";
-            		tar -zxf $backup/monthly/$mensal_mais_proximo/home/$cliente.tz -g $baktodo/monthly/$mensal_mais_proximo/home/$cliente.dump -C $backup;
-            		tar -zxf $backup/weekly/$data_solicitada/home/$cliente.tz -g $baktodo/weekly/$data_solicitada/home/$cliente.dump -C $backup;
+            		tar -zxf $backup/monthly/$mensal_mais_proximo/home/$1.tz -g $baktodo/monthly/$mensal_mais_proximo/home/$1.dump -C $backup;
+            		tar -zxf $backup/weekly/$data_solicitada/home/$1.tz -g $baktodo/weekly/$data_solicitada/home/$1.dump -C $backup;
        	fi
     	else
         	#Se o mensal existir
@@ -192,167 +214,32 @@ elif [ `find $backup -iname "$data_solicitada"` == $backup/weekly/$data_solicita
             		then
                 		#Então ele faz um mensal.
                 		echo "-------------> Descompactando mensal de um diario: $mensal_mais_proximo...";
-                		tar -zxf $backup/monthly/$mensal_mais_proximo/home/$cliente.tz -g $baktodo/monthly/$mensal_mais_proximo/home/$cliente.dump -C $backup;
+                		tar -zxf $backup/monthly/$mensal_mais_proximo/home/$1.tz -g $baktodo/monthly/$mensal_mais_proximo/home/$1.dump -C $backup;
         	fi
         	#Se o semanal existir e o mensal não existir ou o semanal for mais recente que que o mensal.
         	if [[ (-n "$semanal_mais_proxino_timestamp") && ( -z "$mensal_mais_proximo_timestamp" || "$semanal_mais_proxino_timestamp" -gt "$mensal_mais_proximo_timestamp" )  ]];
             		then
                 		#Então ele faz o semanal.
                 		echo "-------------> Descompactando semanal de um diario: $semanal_mais_proximo...";
-                		tar -zxf $backup/weekly/$semanal_mais_proximo/home/$cliente.tz -g $baktodo/weekly/$semanal_mais_proximo/home/$cliente.dump -C $backup;
+                		tar -zxf $backup/weekly/$semanal_mais_proximo/home/$1.tz -g $baktodo/weekly/$semanal_mais_proximo/home/$1.dump -C $backup;
         	fi
         	# Ele faz o diario.
         	echo "-------------> Descompactando diario: $diario_mais_proximo...";
-        	tar -zxf $backup/daily/$diario_mais_proximo/home/$cliente.tz -g $baktodo/daily/$diario_mais_proximo/home/$cliente.dump -C $backup;
+        	tar -zxf $backup/daily/$diario_mais_proximo/home/$1.tz -g $baktodo/daily/$diario_mais_proximo/home/$1.dump -C $backup;
 	fi
-#Define o diretório de restauração.
-echo "==========================================================="
-echo "= Deseja restaurar o diretório inteiro do cliente? (S/N): ="
-echo "==========================================================="
-read confirmacao
-while [ ${confirmacao^} != 'S' -a ${confirmacao^} != 'N' ];
-    do
-        echo "=================================================="
-        echo "= Opção inválida, deseja tentar novamente? (S/N) ="
-        echo "=================================================="
-        read confirmacao
-        if [ ${confirmacao^} != 'S' ];
-            then
-	        echo "============================"
-               	echo "= Abortando a restauração! ="
-	        echo "============================"
-                rm -rf $backup/$cliente/
-                umount $backup
-                umount $baktodo
-	        exit;
-            else
-                echo "==========================================================="
-                echo "= Deseja restaurar o diretório inteiro do cliente? (S/N): ="
-                echo "==========================================================="
-                read confirmacao
-	    fi
-    done
-if [ ${confirmacao^} != 'S' ];
-    then
-    	echo "######################################################################################"
-	echo "# OBS: Digite somente o nome da pasta, não coloque /home e nem / no começo ou final. #"
-	echo "######################################################################################"
-	echo "==========================================="
-        echo "= Informe o nome do diretório que deseja: ="
-        echo "==========================================="
-        read pasta
 fi
-# Caso seja parcial, ele verifica se o existe backup no diretorio do cliente e no diretorio de backup.
-while [[ (! -z "$pasta") && ( ! -d "$backup/$cliente/$pasta" || ! -d "$diretorio/$pasta" ) ]];
-    do
-        if [ ! -d $backup/$cliente/$pasta ];
-            then
-                echo "============================================================="
-                echo "= Não existe backup dessa pasta, deseja tentar outra? (S/N) ="
-                echo "============================================================="
-                read confirmacao
-                while [ ${confirmacao^} != 'S' -a ${confirmacao^} != 'N' ];
-                    do
-                        echo "=================================================="
-                        echo "= Opção inválida, deseja tentar novamente? (S/N) ="
-                        echo "=================================================="
-                        read confirmacao
-                        if [ ${confirmacao^} != 'S' ];
-                            then
-                                echo "============================"
-                                echo "= Abortando a restauração! ="
-                                echo "============================"
-                                rm -rf $backup/$cliente/
-                                umount $backup
-                                umount $baktodo
-                                exit;
-                            else
-                                echo "===================================="
-                                echo "= Deseja tentar outra pasta? (S/N) ="
-                                echo "===================================="
-                                read confirmacao
-                        fi
-                    done
-                if [ ${confirmacao^} != 'S' ];
-                then
-                    #Se digitar n/N ele desmonta o backup e para o script.
-                    echo "============================"
-                    echo "= Abortando a restauração! ="
-                    echo "============================"
-                    rm -rf $backup/$cliente/
-                    umount $backup
-                    umount $baktodo
-                    exit;
-                else
-                    echo "====================================================="
-                    echo "= Informe novamente o nome do diretório que deseja: ="
-                    echo "====================================================="
-                    read pasta
-                fi
-            fi
-        if [ ! -d $diretorio/$pasta ];
-            then
-                echo "====================================================================="
-                echo "= A pasta não existe na home do cliente, deseja tentar outra? (S/N) ="
-                echo "====================================================================="
-                read confirmacao
-                while [ ${confirmacao^} != 'S' -a ${confirmacao^} != 'N' ];
-                    do
-                        echo "=================================================="
-                        echo "= Opção inválida, deseja tentar novamente? (S/N) ="
-                        echo "=================================================="
-                        read confirmacao
-                        if [ ${confirmacao^} != 'S' ];
-                            then
-                                echo "============================"
-                                echo "= Abortando a restauração! ="
-                                echo "============================"
-                                rm -rf $backup/$cliente/
-                                umount $backup
-                                umount $baktodo
-                                exit;
-                            else
-                                echo "==============================="
-                                echo "= Deseja tentar outra? (S/N): ="
-                                echo "==============================="
-                                read confirmacao
-                        fi
-                    done
-                if [ ${confirmacao^} != 'S' ];
-                    then
-                    	#Se digitar n/N ele desmonta o backup e para o script.
-                    	echo "============================"
-                    	echo "= Abortando a restauração! ="
-                    	echo "============================"
-                    	rm -rf $backup/$cliente/
-                    	umount $backup
-                    	umount $baktodo
-                    	exit;
-                else
-                    echo "====================================================="
-                    echo "= Informe novamente o nome do diretório que deseja: ="
-                    echo "====================================================="
-                    read pasta
-                fi
-            fi
-    done
-#Define o tipo backup a ser feito.
-echo "============================================================================================================================="
-echo "= Escolha o modo de restauração com C (Cópia), S (Sobrescrita), I (Incremental), CP (Cópia para outra pasta) ou L (Listar): ="
-echo "============================================================================================================================="
-read tipo
-case $tipo in
+case $2 in
     c|C)
         echo "==========================="
         echo "= Modo cópia selecionado! ="
         echo "==========================="
-        quota_maxima_do_cliente=$(quota -w $cliente | awk '/\/dev\/mapper\/work-home/ {print $4}' | tr -s "[:punct:]" " ");
-        tamanho_da_home_do_cliente=$(du -s /home/$cliente/ | awk '{print $1}' | tr -s "[:punct:]" " ");
-        if [ -z "$pasta" ] ;
+        quota_maxima_do_cliente=$(quota -w $1 | awk '/\/dev\/mapper\/work-home/ {print $4}' | tr -s "[:punct:]" " ");
+        tamanho_da_home_do_cliente=$(du -s /home/$1/ | awk '{print $1}' | tr -s "[:punct:]" " ");
+        if [ -z "$3" ] ;
             then
-                tamanho_do_backup=$(du -s $backup/$cliente/ | awk '{print $1}' | tr -s "[:punct:]" " ");
+                tamanho_do_backup=$(du -s $backup/$1/ | awk '{print $1}' | tr -s "[:punct:]" " ");
             else
-                tamanho_do_backup=$(du -s $backup/$cliente/$pasta/ | awk '{print $1}' | tr -s "[:punct:]" " ");
+                tamanho_do_backup=$(du -s $backup/$1/$3/ | awk '{print $1}' | tr -s "[:punct:]" " ");
         fi
         tamanho_total_da_home_com_backup=$(expr $tamanho_do_backup + $tamanho_da_home_do_cliente);
         if [ "$tamanho_total_da_home_com_backup" -ge "$quota_maxima_do_cliente" ] ;
@@ -371,18 +258,18 @@ case $tipo in
                 echo "Excedente com quota atual: $excedente_de_espaco_com_backup MB";
                 echo "Quota mínima necessária: $quota_necessaria MB"
             else
-                echo "-------------> Criando pasta de copia /home/$cliente/backup-copia-$data_solicitada_sem_hora/..."
-                mkdir -m 755 /home/$cliente/backup-copia-$data_solicitada_sem_hora/
-                if [ -z "$pasta" ] ;
+                echo "-------------> Criando pasta de copia /home/$1/backup-copia-$data_solicitada_sem_hora/..."
+                mkdir -m 755 /home/$1/backup-copia-$data_solicitada_sem_hora/
+                if [ -z "$3" ] ;
                     then
                     echo "-------------> Restaurando cópia completa..."    
-                    mv $backup/$cliente/ /home/$cliente/backup-copia-$data_solicitada_sem_hora/
+                    mv $backup/$1/ /home/$1/backup-copia-$data_solicitada_sem_hora/
                 else
-                    echo "-------------> Restaurando a pasta $pasta como cópia..."
-                    mv $backup/$cliente/$pasta/ /home/$cliente/backup-copia-$data_solicitada_sem_hora/
+                    echo "-------------> Restaurando a pasta $3 como cópia..."
+                    mv $backup/$1/$3/ /home/$1/backup-copia-$data_solicitada_sem_hora/
                 fi
-                echo "-------------> Corrigindo o proprietário para $cliente..."
-                chown -R $cliente: /home/$cliente/
+                echo "-------------> Corrigindo o proprietário para $1..."
+                chown -R $1: /home/$1/
         fi
     ;;
     s|S)
@@ -390,79 +277,63 @@ case $tipo in
         echo "= Modo sobrescrito selecionado! ="
         echo "================================="
         echo "-------------> Criando pasta de backup..."
-        if [ -z "$pasta" ] ;
+        if [ -z "$3" ] ;
             then
             	echo "-------------> Sobrescrevendo completamente a home..."
-		mkdir -m 755 /home/marcos/backup-$cliente-`date +%Y-%m-%d-%H-%M`/$data_solicitada/$cliente/
-       	    	mv $diretorio/* /home/marcos/backup-$cliente-`date +%Y-%m-%d-%H-%M`/$data_solicitada/$cliente/
-            	rsync -aq $backup/$cliente/ $diretorio/
+		        mkdir -m 755 /home/marcos/backup-$1-`date +%Y-%m-%d-%H-%M`/$data_solicitada/$1/
+       	    	mv $diretorio/* /home/marcos/backup-$1-`date +%Y-%m-%d-%H-%M`/$data_solicitada/$1/
+            	rsync -aq $backup/$1/ $diretorio/
         else
-            echo "-------------> Sobrescrevendo a pasta $pasta..." 
-	    mkdir -m 755 /home/marcos/backup-$cliente-`date +%Y-%m-%d-%H-%M`/$data_solicitada/$pasta/
-            mv $diretorio/$pasta/* /home/marcos/backup-$cliente-`date +%Y-%m-%d-%H-%M`/$data_solicitada/$pasta/
-            rsync -aq $backup/$cliente/$pasta/ $diretorio/$pasta/
+            echo "-------------> Sobrescrevendo a pasta $3..." 
+	        mkdir -m 755 /home/marcos/backup-$1-`date +%Y-%m-%d-%H-%M`/$data_solicitada/$3/
+            mv $diretorio/$3/* /home/marcos/backup-$1-`date +%Y-%m-%d-%H-%M`/$data_solicitada/$3/
+            rsync -aq $backup/$1/$3/ $diretorio/$3/
         fi
-        echo "-------------> Corrigindo o proprietário para $cliente..."
-        chown -R $cliente: /home/$cliente/
-	chown -R marcos: /home/marcos/
+        echo "-------------> Corrigindo o proprietário para $1..."
+        chown -R $1: /home/$1/
+	    chown -R marcos: /home/marcos/
     ;;
     i|I)
         echo "================================="
         echo "= Modo incremental selecionado! ="
         echo "================================="
-        if [ -z "$pasta" ] ;
+        if [ -z "$3" ] ;
             then
             	echo "-------------> Incrementando completamente a home..."
-        	rsync -aq $backup/$cliente/ $diretorio/
+        	rsync -aq $backup/$1/ $diretorio/
         else
-            	echo "-------------> Incrementando a pasta $pasta..."
-        	rsync -aq $backup/$cliente/$pasta/ $diretorio/$pasta/
+            	echo "-------------> Incrementando a pasta $3..."
+        	rsync -aq $backup/$1/$3/ $diretorio/$3/
         fi
-        echo "-------------> Corrigindo o proprietário para $cliente..."
-        chown -R $cliente: /home/$cliente/
-    ;;
-    l|L)
-        echo "============================"
-        echo "= Modo listar selecionado! ="
-        echo "============================"
-        echo "-------------> Listando os backups disponíveis para $cliente:"
-        for f in `find $backup -iname "$cliente.tz" | cut -f2 | cut -d'/' -f5 | cut -d'-' -f1,-2,-3 | sort | awk -F'-' '{print $3"/"$2"/"$1}'`; 
-        do 
-            echo "$f";
-        done
-        echo "============================"
+        echo "-------------> Corrigindo o proprietário para $1..."
+        chown -R $1: /home/$1/
     ;;
     cp|CP)
     	echo "============================================"
         echo "= Modo cópia para outra pasta selecionado! ="
         echo "============================================"
-	echo "######################################################################################"
-	echo "# OBS: Digite somente o nome da pasta, não coloque /home e nem / no começo ou final. #"
-	echo "######################################################################################"
+	    echo "######################################################################################"
+	    echo "# OBS: Digite somente o nome da pasta, não coloque /home e nem / no começo ou final. #"
+	    echo "######################################################################################"
         echo "==================================================="
-	echo "Informe o nome da conta de destino neste servidor: "
-	echo "==================================================="
-	read destino
+	    echo "Informe o nome da conta de destino neste servidor: "
+	    echo "==================================================="
+	    read destino
         echo "-------------> Criando pasta do backup"
-        mkdir -m 755 /home/$destino/backup-$cliente-$data_solicitada_sem_hora/
-        if [ -z "$pasta" ] ;
+        mkdir -m 755 /home/$destino/backup-$1-$data_solicitada_sem_hora/
+        if [ -z "$3" ] ;
             then
             	echo "-------------> Restaurando o diretório completo como cópia em $destino..."    
-            	mv $backup/$cliente/ /home/$destino/backup-$cliente-$data_solicitada_sem_hora/
+            	mv $backup/$1/ /home/$destino/backup-$1-$data_solicitada_sem_hora/
         else
-            echo "-------------> Restaurando a pasta $pasta como cópia em /home/$destino/backup-$cliente-$data_solicitada_sem_hora/..."
-            mv $backup/$cliente/$pasta /home/$destino/backup-$cliente-$data_solicitada_sem_hora/
+            echo "-------------> Restaurando a pasta $3 como cópia em /home/$destino/backup-$1-$data_solicitada_sem_hora/..."
+            mv $backup/$1/$3 /home/$destino/backup-$1-$data_solicitada_sem_hora/
         fi
-        echo "-------------> Corrigindo o proprietário para $cliente..."
+        echo "-------------> Corrigindo o proprietário para $1..."
         chown -R $destino: /home/$destino/
     ;;
-    *)
-        echo "============================================"
-        echo "= Opção inválida, abortando a restauração! ="
-        echo "============================================"
-    ;;
 esac
-rm -rf $backup/$cliente/
+rm -rf $backup/$1/
 echo "-------------> Desmontando partições de backup..."
 umount $backup
 umount $baktodo
