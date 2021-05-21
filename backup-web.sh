@@ -13,7 +13,7 @@ if [ -z $1 ];
         echo "= CP (Cópia para outra pasta) ="
         echo "= I (Incremental)             ="
         echo "==============================="
-		exit;
+	exit;
 fi
 if [ -z $2 ];
     then
@@ -28,7 +28,7 @@ if [ -z $2 ];
         echo "= CP (Cópia para outra pasta) ="
         echo "= I (Incremental)             ="
         echo "==============================="
-		exit;
+	exit;
 fi
 case $2 in
             c|C)
@@ -83,7 +83,7 @@ if [ -z `find $backup -iname "$1.tz"` > /dev/null 2>&1 ];
         echo "==================================="
         umount $backup
         umount $baktodo
-		exit;
+	exit;
 fi
 if [[ ($2 == 'L') || ($2 == 'l') ]];
     then
@@ -95,7 +95,7 @@ if [[ ($2 == 'L') || ($2 == 'l') ]];
         echo "============================"
         umount $backup
         umount $baktodo
-		exit;
+	exit;
 fi
 diretorio="/home/$1"
 if [[ ( -n $3 ) && ( ! -d $diretorio/$3 ) ]];
@@ -196,34 +196,26 @@ if [ `find $backup -iname "$data_solicitada"` == $backup/monthly/$data_solicitad
     	tar -zxf $backup/monthly/$data_solicitada/home/$1.tz -g $baktodo/monthly/$data_solicitada/home/$1.dump -C $backup;
 elif [ `find $backup -iname "$data_solicitada"` == $backup/weekly/$data_solicitada ];
     then
-    	#Se o mensal é mais recente que o semanal ou não tenha um mensal
     	if [ "$mensal_mais_proximo_timestamp" -gt "$semanal_mais_proxino_timestamp" ] || [ -z "$mensal_mais_proximo_timestamp" ];
         	then
-        		# Então faz somente semanal.
         		tar -zxf $backup/weekly/$data_solicitada/home/$1.tz -g $baktodo/weekly/$data_solicitada/home/$1.dump -C $backup;
         		echo "-------------> Descompactando um semanal: $data_solicitada...";
         	    else
-            		#Se não, faz mensal e semanal.
             		echo "-------------> Descompactando um semanal $data_solicitada com referência do mensal $mensal_mais_proximo...";
             		tar -zxf $backup/monthly/$mensal_mais_proximo/home/$1.tz -g $baktodo/monthly/$mensal_mais_proximo/home/$1.dump -C $backup;
             		tar -zxf $backup/weekly/$data_solicitada/home/$1.tz -g $baktodo/weekly/$data_solicitada/home/$1.dump -C $backup;
        	fi
     	else
-        	#Se o mensal existir
         	if [ -n "$mensal_mais_proximo_timestamp" ] ;
             		then
-                		#Então ele faz um mensal.
                 		echo "-------------> Descompactando mensal de um diario: $mensal_mais_proximo...";
                 		tar -zxf $backup/monthly/$mensal_mais_proximo/home/$1.tz -g $baktodo/monthly/$mensal_mais_proximo/home/$1.dump -C $backup;
         	fi
-        	#Se o semanal existir e o mensal não existir ou o semanal for mais recente que que o mensal.
         	if [[ (-n "$semanal_mais_proxino_timestamp") && ( -z "$mensal_mais_proximo_timestamp" || "$semanal_mais_proxino_timestamp" -gt "$mensal_mais_proximo_timestamp" )  ]];
             		then
-                		#Então ele faz o semanal.
                 		echo "-------------> Descompactando semanal de um diario: $semanal_mais_proximo...";
                 		tar -zxf $backup/weekly/$semanal_mais_proximo/home/$1.tz -g $baktodo/weekly/$semanal_mais_proximo/home/$1.dump -C $backup;
         	fi
-        	# Ele faz o diario.
         	echo "-------------> Descompactando diario: $diario_mais_proximo...";
         	tar -zxf $backup/daily/$diario_mais_proximo/home/$1.tz -g $baktodo/daily/$diario_mais_proximo/home/$1.dump -C $backup;
 	fi
