@@ -222,9 +222,6 @@ elif [ `find $backup -iname "$data_solicitada"` == $backup/weekly/$data_solicita
 fi
 case $2 in
     c|C)
-        echo "==========================="
-        echo "= Modo cópia selecionado! ="
-        echo "==========================="
         quota_maxima_do_cliente=$(quota -w $1 | awk '/\/dev\/mapper\/work-home/ {print $4}' | tr -s "[:punct:]" " ");
         tamanho_da_home_do_cliente=$(du -s /home/$1/ | awk '{print $1}' | tr -s "[:punct:]" " ");
         if [ -z "$3" ] ;
@@ -265,9 +262,6 @@ case $2 in
         fi
     ;;
     s|S)
-        echo "================================="
-        echo "= Modo sobrescrito selecionado! ="
-        echo "================================="
         echo "-------------> Criando pasta de backup..."
         if [ -z "$3" ] ;
             then
@@ -286,9 +280,6 @@ case $2 in
 	    chown -R marcos: /home/marcos/
     ;;
     i|I)
-        echo "================================="
-        echo "= Modo incremental selecionado! ="
-        echo "================================="
         if [ -z "$3" ] ;
             then
             	echo "-------------> Incrementando completamente a home..."
@@ -301,13 +292,7 @@ case $2 in
         chown -R $1: /home/$1/
     ;;
     cp|CP)
-    	echo "============================================"
-        echo "= Modo cópia para outra pasta selecionado! ="
-        echo "============================================"
-	    echo "######################################################################################"
-	    echo "# OBS: Digite somente o nome da pasta, não coloque /home e nem / no começo ou final. #"
-	    echo "######################################################################################"
-        echo "==================================================="
+            echo "==================================================="
 	    echo "Informe o nome da conta de destino neste servidor: "
 	    echo "==================================================="
 	    read destino
