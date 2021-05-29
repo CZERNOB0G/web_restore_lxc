@@ -332,7 +332,7 @@ case $2 in
     ;;
 esac
 echo -n "-------------> Removendo pasta de backup $backup/$1/: "
-rm -rf $backup/$1/
+rm -rf $backup/$cliente/
 echo -e "${CHECK_MARK}";
 echo -n "-------------> Desmontando partições de backup: "
 umount $backup
