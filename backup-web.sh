@@ -34,6 +34,20 @@ case $2 in
     l|L)
         echo "============================"
         echo "= Modo listar selecionado! ="
+        echo "============================"
+        backup="/var/backup"
+        baktodo="/var/baktodo"
+        mount $backup
+        mount $baktodo
+        echo "-------------> Listando os backups disponíveis para $1:"
+        for f in `find $backup -iname "$1.tz" | cut -f2 | cut -d'/' -f5 | cut -d'-' -f1,-2,-3 | sort | awk -F'-' '{print $3"/"$2"/"$1}'`;
+        do
+            echo "$f";
+        done
+        echo "============================"
+        umount $backup
+        umount $baktodo
+        exit;
     ;;
     *)
         echo "================="
@@ -59,6 +73,20 @@ backup="/var/backup"
 baktodo="/var/baktodo"
 mount $backup
 mount $baktodo
+function trap_ctrlc ()
+{
+    echo " "
+    echo "OK, Abortando operação..."
+    echo "Espere ao menos para desmontar as partições e apagar a pasta de backup"
+    if [ -d "$backup/$1" ];
+        then
+            rm -rf $backup/$1
+    fi
+        umount $backup
+        umount $baktodo
+    exit 2
+}
+trap "trap_ctrlc" 2
 if [ -n "$3" -a ! -d "/home/$1" ];
     then
         echo "================================="
@@ -75,19 +103,6 @@ if [ -z `find $backup -iname "$1.tz"` > /dev/null 2>&1 ];
         echo "==================================="
         umount /var/backup;
         umount /var/baktodo;
-        exit;
-fi
-if [ "$2" == "l" -o "$2" == "L" ];
-    then
-        echo "============================"
-        echo "-------------> Listando os backups disponíveis para $1:"
-        for f in `find $backup -iname "$1.tz" | cut -f2 | cut -d'/' -f5 | cut -d'-' -f1,-2,-3 | sort | awk -F'-' '{print $3"/"$2"/"$1}'`;
-        do
-            echo "$f";
-        done
-        echo "============================"
-        umount $backup
-        umount $baktodo
         exit;
 fi
 diretorio="/home/$1"
