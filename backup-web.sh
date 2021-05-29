@@ -14,6 +14,40 @@ if [ -z "$1" -o -z "$2" ];
         echo "==============================="
         exit;
 fi
+case $2 in
+    c|C)
+        echo "==========================="
+        echo "= Modo cópia selecionado! ="
+    ;;
+    s|S)
+        echo "================================="
+        echo "= Modo sobrescrito selecionado! ="
+    ;;
+    i|I)
+        echo "================================="
+        echo "= Modo incremental selecionado! ="
+    ;;
+    cp|CP)
+        echo "============================================"
+        echo "= Modo copia para outra pasta selecionado! ="
+    ;;
+    l|L)
+        echo "============================"
+        echo "= Modo listar selecionado! ="
+    ;;
+    *)
+        echo "================="
+        echo "= Tipo inválido ="
+        echo "==============================="
+        echo "= Parametros para o tipo      ="
+        echo "= C (Cópia)                   ="
+        echo "= S (Sobrescrita)             ="
+        echo "= CP (Cópia para outra pasta) ="
+        echo "= I (Incremental)             ="
+        echo "==============================="
+        exit;
+    ;;
+esac
 if [ ! -d "/home/$1" ];
     then
         echo "================================="
@@ -45,8 +79,6 @@ if [ -z `find $backup -iname "$1.tz"` > /dev/null 2>&1 ];
 fi
 if [ "$2" == "l" -o "$2" == "L" ];
     then
-        echo "============================"
-        echo "= Modo listar selecionado! ="
         echo "============================"
         echo "-------------> Listando os backups disponíveis para $1:"
         for f in `find $backup -iname "$1.tz" | cut -f2 | cut -d'/' -f5 | cut -d'-' -f1,-2,-3 | sort | awk -F'-' '{print $3"/"$2"/"$1}'`;
@@ -133,34 +165,41 @@ if [ -n "$semanal_mais_proximo" ];
     then
         semanal_mais_proxino_timestamp=`date -d "${semanal_mais_proximo:0:10}" +"%s"`
 fi
+CHECK_MARK="\033[0;32m\xE2\x9C\x94\033[0m";
 if [ `find $backup -iname "$data_solicitada"` == $backup/monthly/$data_solicitada ];
     then
-        echo "-------------> Descompactando um mensal: $data_solicitada...";
+        echo -n "-------------> Descompactando um mensal $data_solicitada: ";
         tar -zxf $backup/monthly/$data_solicitada/home/$1.tz -g $baktodo/monthly/$data_solicitada/home/$1.dump -C $backup;
+        echo -e "${CHECK_MARK}";
 elif [ `find $backup -iname "$data_solicitada"` == $backup/weekly/$data_solicitada ];
     then
         if [ "$mensal_mais_proximo_timestamp" -gt "$semanal_mais_proxino_timestamp" ] || [ -z "$mensal_mais_proximo_timestamp" ];
                 then
+                        echo -n "-------------> Descompactando um semanal $data_solicitada: ";
                         tar -zxf $backup/weekly/$data_solicitada/home/$1.tz -g $baktodo/weekly/$data_solicitada/home/$1.dump -C $backup;
-                        echo "-------------> Descompactando um semanal: $data_solicitada...";
+                        echo -e "${CHECK_MARK}";
                 else
-                        echo "-------------> Descompactando um semanal $data_solicitada com referência do mensal $mensal_mais_proximo...";
+                        echo -n "-------------> Descompactando um semanal $data_solicitada com referência do mensal $mensal_mais_proximo: ";
                         tar -zxf $backup/monthly/$mensal_mais_proximo/home/$1.tz -g $baktodo/monthly/$mensal_mais_proximo/home/$1.dump -C $backup;
                         tar -zxf $backup/weekly/$data_solicitada/home/$1.tz -g $baktodo/weekly/$data_solicitada/home/$1.dump -C $backup;
+                        echo -e "${CHECK_MARK}";
         fi
         else
             if [ -n "$mensal_mais_proximo_timestamp" ] ;
                 then
-                    echo "-------------> Descompactando mensal de um diario: $mensal_mais_proximo...";
+                    echo -n "-------------> Descompactando mensal de um diario $mensal_mais_proximo: ";
                     tar -zxf $backup/monthly/$mensal_mais_proximo/home/$1.tz -g $baktodo/monthly/$mensal_mais_proximo/home/$1.dump -C $backup;
+                    echo -e "${CHECK_MARK}";
                 fi
                 if [[ (-n "$semanal_mais_proxino_timestamp") && ( -z "$mensal_mais_proximo_timestamp" || "$semanal_mais_proxino_timestamp" -gt "$mensal_mais_proximo_timestamp" )  ]];
                     then
-                        echo "-------------> Descompactando semanal de um diario: $semanal_mais_proximo...";
+                        echo -n "-------------> Descompactando semanal de um diario $semanal_mais_proximo: ";
                         tar -zxf $backup/weekly/$semanal_mais_proximo/home/$1.tz -g $baktodo/weekly/$semanal_mais_proximo/home/$1.dump -C $backup;
+                        echo -e "${CHECK_MARK}";
             fi
-            echo "-------------> Descompactando diario: $diario_mais_proximo...";
+            echo -n "-------------> Descompactando diario $diario_mais_proximo: ";
             tar -zxf $backup/daily/$diario_mais_proximo/home/$1.tz -g $baktodo/daily/$diario_mais_proximo/home/$1.dump -C $backup;
+            echo -e "${CHECK_MARK}";
         fi
 case $2 in
     c|C)
@@ -189,67 +228,84 @@ case $2 in
                 echo "Excedente com quota atual: $excedente_de_espaco_com_backup MB";
                 echo "Quota mínima necessária: $quota_necessaria MB"
             else
-                echo "-------------> Criando pasta de copia /home/$1/backup-copia-$data_solicitada_sem_hora/..."
+                echo -n "-------------> Criando pasta de copia /home/$1/backup-copia-$data_solicitada_sem_hora: ";
                 mkdir -m 755 /home/$1/backup-copia-$data_solicitada_sem_hora/
+                echo -e "${CHECK_MARK}"
                 if [ -z "$3" ] ;
                     then
-                    echo "-------------> Restaurando cópia completa..."
+                    echo -n "-------------> Restaurando cópia completa: ";
                     mv $backup/$1/ /home/$1/backup-copia-$data_solicitada_sem_hora/
+                    echo -e "${CHECK_MARK}"
                 else
-                    echo "-------------> Restaurando a pasta $3 como cópia..."
+                    echo -n "-------------> Restaurando a pasta $3 como cópia: ";
                     mv $backup/$1/$3/ /home/$1/backup-copia-$data_solicitada_sem_hora/
+                    echo -e "${CHECK_MARK}"
                 fi
-                echo "-------------> Corrigindo o proprietário para $1..."
+                echo -n "-------------> Corrigindo o proprietário para $1: ";
                 chown -R $1: /home/$1/
+                echo -e "${CHECK_MARK}";
         fi
     ;;
     s|S)
-        echo "-------------> Criando pasta de backup..."
         if [ -z "$3" ] ;
             then
-                echo "-------------> Sobrescrevendo completamente a home..."
-                mkdir -m 755 /home/marcos/backup-$1-`date +%Y-%m-%d-%H-%M`/$data_solicitada/$1/
+                echo -n "-------------> Criando pasta de backup: ";
+                mkdir -m 755 -p /home/marcos/backup-$1-`date +%Y-%m-%d-%H-%M`/$data_solicitada/$1/
+                echo -e "${CHECK_MARK}";
+                echo -n "-------------> Sobrescrevendo completamente a home: ";
                 mv $diretorio/* /home/marcos/backup-$1-`date +%Y-%m-%d-%H-%M`/$data_solicitada/$1/
                 rsync -aq $backup/$1/ $diretorio/
-        else
-            echo "-------------> Sobrescrevendo a pasta $3..."
-            mkdir -m 755 /home/marcos/backup-$1-`date +%Y-%m-%d-%H-%M`/$data_solicitada/$3/
-            mv $diretorio/$3/* /home/marcos/backup-$1-`date +%Y-%m-%d-%H-%M`/$data_solicitada/$3/
-            rsync -aq $backup/$1/$3/ $diretorio/$3/
+                echo -e "${CHECK_MARK}";
+            else
+                echo -n "-------------> Criando pasta de backup: ";
+                mkdir -m 755 -p /home/marcos/backup-$1-`date +%Y-%m-%d-%H-%M`/$data_solicitada/$3/
+                echo -e "${CHECK_MARK}";
+                echo -n "-------------> Sobrescrevendo a pasta $3: ";
+                mv $diretorio/$3/* /home/marcos/backup-$1-`date +%Y-%m-%d-%H-%M`/$data_solicitada/$3/
+                rsync -aq $backup/$1/$3/ $diretorio/$3/
+                echo -e "${CHECK_MARK}";
         fi
-        echo "-------------> Corrigindo o proprietário para $1..."
+        echo -n "-------------> Corrigindo o proprietário para $1: ";
         chown -R $1: /home/$1/
         chown -R marcos: /home/marcos/
+        echo -e "${CHECK_MARK}";
     ;;
     i|I)
         if [ -z "$3" ] ;
             then
-                echo "-------------> Incrementando completamente a home..."
+                echo -n "-------------> Incrementando completamente a home: ";
                 rsync -aq $backup/$1/ $diretorio/
-        else
-                echo "-------------> Incrementando a pasta $3..."
+                echo -e "${CHECK_MARK}";
+            else
+                echo -n "-------------> Incrementando a pasta $3: ";
                 rsync -aq $backup/$1/$3/ $diretorio/$3/
+                echo -e "${CHECK_MARK}";
         fi
-        echo "-------------> Corrigindo o proprietário para $1..."
+        echo -n "-------------> Corrigindo o proprietário para $1: ";
         chown -R $1: /home/$1/
+        echo -e "${CHECK_MARK}";
     ;;
     cp|CP)
         echo "==================================================="
         echo "Informe o nome da conta de destino neste servidor: "
         echo "==================================================="
         read destino
-        echo "-------------> Criando pasta do backup"
+        echo -n "-------------> Criando pasta do backup: ";
         mkdir -m 755 /home/$destino/backup-$1-$data_solicitada_sem_hora/
+        echo -e "${CHECK_MARK}";
         if [ -z "$3" ] ;
             then
-                echo "-------------> Restaurando o diretório completo como cópia em $destino..."
+                echo -n "-------------> Restaurando o diretório completo como cópia em $destino: ";
                 mv $backup/$1/ /home/$destino/backup-$1-$data_solicitada_sem_hora/
-        else
-            echo "-------------> Restaurando a pasta $3 como cópia em /home/$destino/backup-$1-$data_solicitada_sem_hora/..."
-            mv $backup/$1/$3 /home/$destino/backup-$1-$data_solicitada_sem_hora/
+                echo -e "${CHECK_MARK}";
+            else
+                echo -n "-------------> Restaurando a pasta $3 como cópia em /home/$destino/backup-$1-$data_solicitada_sem_hora: ";
+                mv $backup/$1/$3 /home/$destino/backup-$1-$data_solicitada_sem_hora/
+                echo -e "${CHECK_MARK}";
         fi
-        echo "-------------> Corrigindo o proprietário para $1..."
+        echo -n "-------------> Corrigindo o proprietário para $1: ";
         chown -R $destino: /home/$destino/
+        echo -e "${CHECK_MARK}";
     ;;
     *)
         echo "============================================"
@@ -257,9 +313,12 @@ case $2 in
         echo "============================================"
     ;;
 esac
+echo -n "-------------> Removendo pasta de backup $backup/$1/: "
 rm -rf $backup/$1/
-echo "-------------> Desmontando partições de backup..."
+echo -e "${CHECK_MARK}";
+echo -n "-------------> Desmontando partições de backup: "
 umount $backup
 umount $baktodo
+echo -e "${CHECK_MARK}";
 echo "-------------> BACKUP FINALIZADO!"
 exit;
