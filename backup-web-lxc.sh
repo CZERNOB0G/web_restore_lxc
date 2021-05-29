@@ -82,6 +82,8 @@ function trap_ctrlc ()
     echo -n "Espere ao menos para desmontar as partições e remover o backup descompactado por favor: "
     if [ "/var/backup/$cliente" != "/var/backup" -a -d "/var/backup/$cliente" ];
         then
+            echo "============================================="
+            echo -n "Apagando a pasta de backup $backup/$cliente: "
             rm -rf $backup/$cliente
             echo -e "${CHECK_MARK}";
     fi
@@ -332,7 +334,7 @@ case $2 in
     ;;
 esac
 echo -n "-------------> Removendo pasta de backup $backup/$1/: "
-rm -rf $backup/$cliente/
+rm -rf $backup/$1/
 echo -e "${CHECK_MARK}";
 echo -n "-------------> Desmontando partições de backup: "
 umount $backup
