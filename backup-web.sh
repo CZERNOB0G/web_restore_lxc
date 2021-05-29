@@ -73,18 +73,22 @@ backup="/var/backup"
 baktodo="/var/baktodo"
 mount $backup
 mount $baktodo
+CHECK_MARK="\033[0;32m\xE2\x9C\x94\033[0m";
+cliente="$1"
 function trap_ctrlc ()
 {
     echo " "
     echo "OK, Abortando operação..."
-    echo "Espere ao menos para desmontar as partições e apagar a pasta de backup"
-    if [ -d "$backup/$1" ];
+    echo -n "Espere ao menos para desmontar as partições e remover o backup descompactado por favor: "
+    if [ "/var/backup/$cliente" != "/var/backup" -a -d "/var/backup/$cliente" ];
         then
-            rm -rf $backup/$1
+            rm -rf $backup/$cliente
+            echo -e "${CHECK_MARK}";
     fi
-        umount $backup
-        umount $baktodo
-    exit 2
+    umount $backup
+    umount $baktodo
+    echo -e "${CHECK_MARK}";
+    exit;
 }
 trap "trap_ctrlc" 2
 if [ -n "$3" -a ! -d "/home/$1" ];
@@ -180,7 +184,6 @@ if [ -n "$semanal_mais_proximo" ];
     then
         semanal_mais_proxino_timestamp=`date -d "${semanal_mais_proximo:0:10}" +"%s"`
 fi
-CHECK_MARK="\033[0;32m\xE2\x9C\x94\033[0m";
 if [ `find $backup -iname "$data_solicitada"` == $backup/monthly/$data_solicitada ];
     then
         echo -n "-------------> Descompactando um mensal $data_solicitada: ";
