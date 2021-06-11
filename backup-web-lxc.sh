@@ -1,4 +1,5 @@
 #!/bin/bash
+
 if [ -z "$1" -o -z "$2" ];
     then
         echo "===================================="
@@ -75,38 +76,29 @@ mount $backup
 mount $baktodo
 CHECK_MARK="\033[0;32m\xE2\x9C\x94\033[0m";
 cliente="$1"
+mkdir -m 755 $backup/web_restore
+web_restore="$backup/web_restore" 
 function trap_ctrlc ()
 {
     echo " "
     echo "OK, Abortando operação..."
     echo -n "Espere ao menos para desmontar as partições e remover o backup descompactado por favor: "
-    if [ "/var/backup/$cliente" != "/var/backup" -a -d "/var/backup/$cliente" ];
+    if [ -d /var/backup/web_restore ];
         then
-            echo "============================================="
-            echo -n "Apagando a pasta de backup $backup/$cliente: "
-            rm -rf $backup/$cliente
-            echo -e "${CHECK_MARK}";
+            rm -rf /var/backup/web_restore/
     fi
-    umount $backup
-    umount $baktodo
+    umount /var/backup/
+    umount /var/backup/
     echo -e "${CHECK_MARK}";
     exit;
 }
 trap "trap_ctrlc" 2
-if [ -n "$3" -a ! -d "/home/$1" ];
-    then
-        echo "================================="
-        echo "= Não existe backup dessa pasta ="
-        echo "================================="
-        umount $backup
-        umount $baktodo
-        exit;
-fi
 if [ -z `find $backup -iname "$1.tz"` > /dev/null 2>&1 ];
     then
         echo "==================================="
         echo "= Não existe backup deste cliente ="
         echo "==================================="
+        rm -rf $web_restore
         umount /var/backup;
         umount /var/baktodo;
         exit;
@@ -129,6 +121,7 @@ while [ -z ${data_find[$id_data_solicitada]} ];
         echo "=================="
         echo "= Opção inválida ="
         echo "=================="
+        rm -rf $web_restore
         umount /var/backup;
         umount /var/baktodo;
         exit;
@@ -196,40 +189,50 @@ elif [ `find $backup -iname "$data_solicitada"` == $backup/weekly/$data_solicita
         if [ "$mensal_mais_proximo_timestamp" -gt "$semanal_mais_proxino_timestamp" ] || [ -z "$mensal_mais_proximo_timestamp" ];
                 then
                         echo -n "-------------> Descompactando um semanal $data_solicitada: ";
-                        tar -zxf $backup/weekly/$data_solicitada/home/$1.tz -g $baktodo/weekly/$data_solicitada/home/$1.dump -C $backup;
+                        tar -zxf $backup/weekly/$data_solicitada/home/$1.tz -g $baktodo/weekly/$data_solicitada/home/$1.dump -C $web_restore;
                         echo -e "${CHECK_MARK}";
                 else
                         echo -n "-------------> Descompactando um semanal $data_solicitada com referência do mensal $mensal_mais_proximo: ";
-                        tar -zxf $backup/monthly/$mensal_mais_proximo/home/$1.tz -g $baktodo/monthly/$mensal_mais_proximo/home/$1.dump -C $backup;
-                        tar -zxf $backup/weekly/$data_solicitada/home/$1.tz -g $baktodo/weekly/$data_solicitada/home/$1.dump -C $backup;
+                        tar -zxf $backup/monthly/$mensal_mais_proximo/home/$1.tz -g $baktodo/monthly/$mensal_mais_proximo/home/$1.dump -C $web_restore;
+                        tar -zxf $backup/weekly/$data_solicitada/home/$1.tz -g $baktodo/weekly/$data_solicitada/home/$1.dump -C $web_restore;
                         echo -e "${CHECK_MARK}";
         fi
         else
             if [ -n "$mensal_mais_proximo_timestamp" ] ;
                 then
                     echo -n "-------------> Descompactando mensal de um diario $mensal_mais_proximo: ";
-                    tar -zxf $backup/monthly/$mensal_mais_proximo/home/$1.tz -g $baktodo/monthly/$mensal_mais_proximo/home/$1.dump -C $backup;
+                    tar -zxf $backup/monthly/$mensal_mais_proximo/home/$1.tz -g $baktodo/monthly/$mensal_mais_proximo/home/$1.dump -C $web_restore;
                     echo -e "${CHECK_MARK}";
                 fi
                 if [[ (-n "$semanal_mais_proxino_timestamp") && ( -z "$mensal_mais_proximo_timestamp" || "$semanal_mais_proxino_timestamp" -gt "$mensal_mais_proximo_timestamp" )  ]];
                     then
                         echo -n "-------------> Descompactando semanal de um diario $semanal_mais_proximo: ";
-                        tar -zxf $backup/weekly/$semanal_mais_proximo/home/$1.tz -g $baktodo/weekly/$semanal_mais_proximo/home/$1.dump -C $backup;
+                        tar -zxf $backup/weekly/$semanal_mais_proximo/home/$1.tz -g $baktodo/weekly/$semanal_mais_proximo/home/$1.dump -C $web_restore;
                         echo -e "${CHECK_MARK}";
             fi
             echo -n "-------------> Descompactando diario $diario_mais_proximo: ";
-            tar -zxf $backup/daily/$diario_mais_proximo/home/$1.tz -g $baktodo/daily/$diario_mais_proximo/home/$1.dump -C $backup;
+            tar -zxf $backup/daily/$diario_mais_proximo/home/$1.tz -g $baktodo/daily/$diario_mais_proximo/home/$1.dump -C $web_restore;
             echo -e "${CHECK_MARK}";
         fi
+if [ -n "$3" -a ! -d "$web_restore/$1/$3" ];
+    then
+        echo "================================="
+        echo "= Não existe backup dessa pasta ="
+        echo "================================="
+        rm -rf $web_restore
+        umount $backup
+        umount $baktodo
+        exit;
+fi
 case $2 in
     c|C)
         quota_maxima_do_cliente=$(quota -w $1 | awk '/\/dev\/mapper\/work-home/ {print $4}' | tr -s "[:punct:]" " ");
         tamanho_da_home_do_cliente=$(du -s /home/$1/ | awk '{print $1}' | tr -s "[:punct:]" " ");
         if [ -z "$3" ] ;
             then
-                tamanho_do_backup=$(du -s $backup/$1/ | awk '{print $1}' | tr -s "[:punct:]" " ");
+                tamanho_do_backup=$(du -s $web_restore/$1/ | awk '{print $1}' | tr -s "[:punct:]" " ");
             else
-                tamanho_do_backup=$(du -s $backup/$1/$3/ | awk '{print $1}' | tr -s "[:punct:]" " ");
+                tamanho_do_backup=$(du -s $web_restore/$1/$3/ | awk '{print $1}' | tr -s "[:punct:]" " ");
         fi
         tamanho_total_da_home_com_backup=$(expr $tamanho_do_backup + $tamanho_da_home_do_cliente);
         if [ "$tamanho_total_da_home_com_backup" -ge "$quota_maxima_do_cliente" ] ;
@@ -254,11 +257,11 @@ case $2 in
                 if [ -z "$3" ] ;
                     then
                     echo -n "-------------> Restaurando cópia completa: ";
-                    mv $backup/$1/ /home/$1/backup-copia-$data_solicitada_sem_hora/
+                    mv $web_restore/$1/ /home/$1/backup-copia-$data_solicitada_sem_hora/
                     echo -e "${CHECK_MARK}"
                 else
                     echo -n "-------------> Restaurando a pasta $3 como cópia: ";
-                    mv $backup/$1/$3/ /home/$1/backup-copia-$data_solicitada_sem_hora/
+                    mv $web_restore/$1/$3/ /home/$1/backup-copia-$data_solicitada_sem_hora/
                     echo -e "${CHECK_MARK}"
                 fi
                 echo -n "-------------> Corrigindo o proprietário para $1: ";
@@ -274,7 +277,7 @@ case $2 in
                 echo -e "${CHECK_MARK}";
                 echo -n "-------------> Sobrescrevendo completamente a home: ";
                 mv $diretorio/* /home/marcos/backup-$1-`date +%Y-%m-%d-%H-%M`/$data_solicitada/$1/
-                rsync -aq $backup/$1/ $diretorio/
+                rsync -aq $web_restore/$1/ $diretorio/
                 echo -e "${CHECK_MARK}";
             else
                 echo -n "-------------> Criando pasta de backup: ";
@@ -282,7 +285,7 @@ case $2 in
                 echo -e "${CHECK_MARK}";
                 echo -n "-------------> Sobrescrevendo a pasta $3: ";
                 mv $diretorio/$3/* /home/marcos/backup-$1-`date +%Y-%m-%d-%H-%M`/$data_solicitada/$3/
-                rsync -aq $backup/$1/$3/ $diretorio/$3/
+                rsync -aq $web_restore/$1/$3/ $diretorio/$3/
                 echo -e "${CHECK_MARK}";
         fi
         echo -n "-------------> Corrigindo o proprietário para $1: ";
@@ -294,11 +297,11 @@ case $2 in
         if [ -z "$3" ] ;
             then
                 echo -n "-------------> Incrementando completamente a home: ";
-                rsync -aq $backup/$1/ $diretorio/
+                rsync -aq $web_restore/$1/ $diretorio/
                 echo -e "${CHECK_MARK}";
             else
                 echo -n "-------------> Incrementando a pasta $3: ";
-                rsync -aq $backup/$1/$3/ $diretorio/$3/
+                rsync -aq $web_restore/$1/$3/ $diretorio/$3/
                 echo -e "${CHECK_MARK}";
         fi
         echo -n "-------------> Corrigindo o proprietário para $1: ";
@@ -316,11 +319,11 @@ case $2 in
         if [ -z "$3" ] ;
             then
                 echo -n "-------------> Restaurando o diretório completo como cópia em $destino: ";
-                mv $backup/$1/ /home/$destino/backup-$1-$data_solicitada_sem_hora/
+                mv $web_restore/$1/ /home/$destino/backup-$1-$data_solicitada_sem_hora/
                 echo -e "${CHECK_MARK}";
             else
                 echo -n "-------------> Restaurando a pasta $3 como cópia em /home/$destino/backup-$1-$data_solicitada_sem_hora: ";
-                mv $backup/$1/$3 /home/$destino/backup-$1-$data_solicitada_sem_hora/
+                mv $web_restore/$1/$3 /home/$destino/backup-$1-$data_solicitada_sem_hora/
                 echo -e "${CHECK_MARK}";
         fi
         echo -n "-------------> Corrigindo o proprietário para $1: ";
@@ -333,8 +336,8 @@ case $2 in
         echo "============================================"
     ;;
 esac
-echo -n "-------------> Removendo pasta de backup $backup/$1/: "
-rm -rf $backup/$1/
+echo -n "-------------> Removendo pasta de backup $web_restore: "
+rm -rf $web_restore
 echo -e "${CHECK_MARK}";
 echo -n "-------------> Desmontando partições de backup: "
 umount $backup
