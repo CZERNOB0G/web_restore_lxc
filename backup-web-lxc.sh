@@ -231,12 +231,12 @@ elif [ `find $backup -iname "$data_solicitada"` == $backup/weekly/$data_solicita
 case $tipo in
     c|C)
         quota_maxima_do_cliente=$(quota -w $cliente | awk '/\/dev\/mapper\/work-home/ {print $4}' | tr -s "[:punct:]" " ");
-        tamanho_da_home_do_cliente=$(du -s $diretorio | awk '{print $cliente}' | tr -s "[:punct:]" " ");
+        tamanho_da_home_do_cliente=$(du -s $diretorio | awk '{print $1}' | tr -s "[:punct:]" " ");
         if [ -z "$pasta" ] ;
             then
-                tamanho_do_backup=$(du -s $web_restore/$cliente/ | awk '{print $cliente}' | tr -s "[:punct:]" " ");
+                tamanho_do_backup=$(du -s $web_restore/$cliente/ | awk '{print $1}' | tr -s "[:punct:]" " ");
             else
-                tamanho_do_backup=$(du -s $web_restore/$cliente/$pasta/ | awk '{print $cliente}' | tr -s "[:punct:]" " ");
+                tamanho_do_backup=$(du -s $web_restore/$cliente/$pasta/ | awk '{print $1}' | tr -s "[:punct:]" " ");
         fi
         tamanho_total_da_home_com_backup=$(expr $tamanho_do_backup + $tamanho_da_home_do_cliente);
         if [ "$tamanho_total_da_home_com_backup" -ge "$quota_maxima_do_cliente" ] ;
