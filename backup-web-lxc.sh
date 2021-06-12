@@ -128,7 +128,7 @@ for i in `find $backup -iname "$cliente.tz" | sort | cut -d'/' -f5`;
                 echo "$inc: $i";
         fi
 done
-if [ -z ${data_find[*]} -a -n "$pasta" ];
+if [ ${#data_find[@]} -eq 0 -a -n "$pasta" ];    
     then
         echo "=================================="
         echo "= Não têm backup para essa pasta ="
