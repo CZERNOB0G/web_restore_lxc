@@ -92,7 +92,7 @@ function trap_ctrlc ()
             rm -rf /var/backup/web_restore/
     fi
     umount /var/backup/
-    umount /var/backup/
+    umount /var/baktodo/
     echo -e "${CHECK_MARK}";
     exit;
 }
