@@ -128,6 +128,16 @@ for i in `find $backup -iname "$cliente.tz" | sort | cut -d'/' -f5`;
                 echo "$inc: $i";
         fi
 done
+if [ -z ${data_find[*]} -a -n "$pasta" ];
+    then
+        echo "=================================="
+        echo "= Não têm backup para essa pasta ="
+        echo "=================================="
+        rm -rf $web_restore
+        umount $backup;
+        umount $baktodo;
+        exit;
+fi
 echo "========================================"
 read id_data_solicitada
 if [ -z ${data_find[$id_data_solicitada]} ];
