@@ -78,7 +78,6 @@ baktodo="/var/baktodo"
 mount $backup
 mount $baktodo
 CHECK_MARK="\033[0;32m\xE2\x9C\x94\033[0m";
-cliente="$cliente"
 mkdir -m 755 $backup/web_restore
 web_restore="$backup/web_restore" 
 function trap_ctrlc ()
