@@ -1,7 +1,8 @@
 #!/bin/bash
 cliente="$1";
 tipo="$2";
-pasta="$3";
+id_pasta_ini=${3/#"/"/""};
+pasta=${id_pasta_ini/%"/"/""};
 if [ -z "$cliente" -o -z "$tipo" ];
     then
         echo "===================================="
@@ -73,25 +74,35 @@ if [ ! -d "$diretorio" ];
         echo "================================="
         exit;
 fi
-backup="/var/backup"
-baktodo="/var/baktodo"
+export CHECK_MARK="\033[0;32m\xE2\x9C\x94\033[0m";
+export backup="/var/backup"
+export baktodo="/var/baktodo"
 mount $backup
 mount $baktodo
-CHECK_MARK="\033[0;32m\xE2\x9C\x94\033[0m";
 mkdir -m 755 $backup/web_restore
-web_restore="$backup/web_restore" 
+export web_restore="$backup/web_restore"
+over () {
+    if [ -d /var/backup/web_restore ];
+        then
+            echo -n "-------------> Removendo $web_restore: "
+            rm -rf /var/backup/web_restore
+            echo -e "${CHECK_MARK}";
+    fi
+    echo -n "-------------> Desmontando backup: "
+    umount $backup $baktodo
+    echo -e "${CHECK_MARK}";
+    exit;
+}
 function trap_ctrlc ()
 {
     echo " "
-    CHECK_MARK="\033[0;32m\xE2\x9C\x94\033[0m";
     echo "OK, Abortando operação..."
     echo -n "Espere ao menos para desmontar as partições e remover o backup descompactado por favor: "
     if [ -d /var/backup/web_restore ];
         then
             rm -rf /var/backup/web_restore/
     fi
-    umount /var/backup/
-    umount /var/baktodo/
+    umount /var/backup/ /var/baktodo/
     echo -e "${CHECK_MARK}";
     exit;
 }
@@ -101,10 +112,7 @@ if [ -z `find $backup -iname "$cliente.tz"` > /dev/null 2>&1 ];
         echo "==================================="
         echo "= Não existe backup deste cliente ="
         echo "==================================="
-        rm -rf $web_restore
-        umount $backup;
-        umount $baktodo;
-        exit;
+        over
 fi
 echo "========================================"
 echo "= Escolha a data que deseja restaurar: ="
@@ -114,7 +122,7 @@ for i in `find $backup -iname "$cliente.tz" | sort | cut -d'/' -f5`;
     do
         if [ -n "$pasta" ];
             then
-                verificacao_de_pasta=`tar -tf $backup/monthly/$i/home/$cliente.tz | grep -m1 -x $cliente/$pasta/`;
+                verificacao_de_pasta=`tar -tf $backup/*/$i/home/$cliente.tz | grep -m1 -x $cliente/$pasta/`;
                 if [ -n "$verificacao_de_pasta" ];
                     then
                         let inc++;
@@ -132,10 +140,7 @@ if [ ${#data_find[@]} -eq 0 -a -n "$pasta" ];
         echo "=================================="
         echo "= Não têm backup para essa pasta ="
         echo "=================================="
-        rm -rf $web_restore
-        umount $backup;
-        umount $baktodo;
-        exit;
+        over
 fi
 echo "========================================"
 read id_data_solicitada
@@ -144,10 +149,7 @@ if [ -z ${data_find[$id_data_solicitada]} ];
         echo "=================="
         echo "= Opção inválida ="
         echo "=================="
-        rm -rf $web_restore
-        umount $backup;
-        umount $baktodo;
-        exit;
+        over
 fi
 data_solicitada="${data_find[$id_data_solicitada]}"
 data_solicitada_sem_hora="${data_solicitada:0:10}"
@@ -344,12 +346,6 @@ case $tipo in
         echo -e "${CHECK_MARK}";
     ;;
 esac
-echo -n "-------------> Removendo pasta de backup $web_restore: "
-rm -rf $web_restore
-echo -e "${CHECK_MARK}";
-echo -n "-------------> Desmontando partições de backup: "
-umount $backup
-umount $baktodo
-echo -e "${CHECK_MARK}";
+over
 echo "-------------> BACKUP FINALIZADO!"
 exit;
