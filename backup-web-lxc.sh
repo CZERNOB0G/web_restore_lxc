@@ -15,6 +15,7 @@ if [ -z "$cliente" -o -z "$tipo" ];
         echo "= S (Sobrescrita)             ="
         echo "= CP (Cópia para outra pasta) ="
         echo "= I (Incremental)             ="
+        echo "= L (Listar)                  ="
         echo "==============================="
         exit;
 fi
