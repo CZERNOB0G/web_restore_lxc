@@ -108,6 +108,7 @@ case $tipo in
         echo "= S (Sobrescrita)             ="
         echo "= CP (Cópia para outra pasta) ="
         echo "= I (Incremental)             ="
+        echo "= L (Listar)                  ="
         echo "==============================="
         exit;
     ;;
@@ -376,6 +377,16 @@ case $tipo in
         echo "Informe o nome da conta de destino neste servidor: "
         echo "==================================================="
         read destino
+        diretorio_dest="/home/$destino"
+        if [ ! -d "$diretorio_dest" ];
+            then
+                echo "==============================="
+                echo "= Esta conta não possui home  ="
+                echo "==============================="
+                over
+                exit;
+        fi
+        echo "==================================================="
         echo -n "-------------> Criando pasta do backup: ";
         mkdir -m 755 /home/$destino/backup-$cliente-$data_solicitada_sem_hora/
         echo -e "${CHECK_MARK}";
