@@ -159,7 +159,6 @@ if [ -z `find $backup -iname "$cliente.tz"` > /dev/null 2>&1 ];
         echo "==================================="
         over
 fi
-done
 echo "========================================"
 echo "= Escolha a data que deseja restaurar: ="
 echo "========================================"
