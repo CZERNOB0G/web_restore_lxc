@@ -66,17 +66,18 @@ case $tipo in
         if [ -n "$pasta" ];
             then
                 echo "-------------> Listando os backups disponíveis para $cliente com a pasta $pasta:"
-                for i in `find $backup -iname "$cliente.tz" | sort | cut -d'/' -f5 | cut -d'-' -f1,-2,-3 | sort | awk -F'-' '{print $3"/"$2"/"$1}'`;
+                for i in `find $backup -iname "$cliente.tz" | sort | cut -d'/' -f5`;
                     do
                         verificacao_de_pasta=`tar -tf $backup/*/$i/home/$cliente.tz | grep -m1 -x $cliente/$pasta/`;
                         if [ -n "$verificacao_de_pasta" ];
                             then
                                 let inc++;
                                 data_find[$inc]=$i;
-                                echo "$i";
+                                i2=`echo "$i" | cut -d'-' -f1,-2,-3 | sort | awk -F'-' '{print $3"/"$2"/"$1}'`;
+                                echo "$i2";
                         fi
                 done
-                if [ ${#data_find[@]} -eq 0 ];    
+                if [ ${#data_find[@]} -eq 0 ];
                     then
                         echo "=================================="
                         echo "= Não têm backup para essa pasta ="
@@ -172,12 +173,14 @@ for i in `find $backup -iname "$cliente.tz" | sort | cut -d'/' -f5`;
                     then
                         let inc++;
                         data_find[$inc]=$i;
-                        echo "$inc: $i";
+                        i2=`echo "$i" | cut -d'-' -f1,-2,-3 | awk -F'-' '{print $3"/"$2"/"$1}'`;
+                        echo "$inc: $i2";
                 fi
             else
                 let inc++;
                 data_find[$inc]=$i;
-                echo "$inc: $i";
+                i2=`echo "$i" | cut -d'-' -f1,-2,-3 | awk -F'-' '{print $3"/"$2"/"$1}'`;
+                echo "$inc: $i2";
         fi
 done
 if [ ${#data_find[@]} -eq 0 -a -n "$pasta" ];    
