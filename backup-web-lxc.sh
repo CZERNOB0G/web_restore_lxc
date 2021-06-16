@@ -66,7 +66,7 @@ case $tipo in
         if [ -n "$pasta" ];
             then
                 echo "-------------> Listando os backups disponíveis para $cliente com a pasta $pasta:"
-                for i in `find $backup -iname "$cliente.tz" | sort | cut -d'/' -f5`;
+                for i in `find $backup -iname "$cliente.tz" | sort | cut -d'/' -f5 | cut -d'-' -f1,-2,-3 | sort | awk -F'-' '{print $3"/"$2"/"$1}'`;
                     do
                         verificacao_de_pasta=`tar -tf $backup/*/$i/home/$cliente.tz | grep -m1 -x $cliente/$pasta/`;
                         if [ -n "$verificacao_de_pasta" ];
