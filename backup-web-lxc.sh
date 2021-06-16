@@ -202,6 +202,23 @@ if [ -z ${data_find[$id_data_solicitada]} ];
 fi
 data_solicitada="${data_find[$id_data_solicitada]}"
 data_solicitada_sem_hora="${data_solicitada:0:10}"
+if [ "${tipo^}" = "C" ];
+    then
+        if [ -d "$diretorio/backup-copia-$data_solicitada_sem_hora/" -a -z "$pasta" ];
+            then
+                echo "========================================================"
+                echo "= Já possui backup cópia dessa data na home do cliente ="
+                echo "========================================================"
+                over
+        fi
+        if [ -d "$diretorio/backup-copia-$data_solicitada_sem_hora/$pasta/" -a -n "$pasta" ];
+            then
+                echo "================================================================"
+                echo "= Já possui backup cópia dessa pasta e data na home do cliente ="
+                echo "================================================================"
+                over
+        fi
+fi
 data_solicitada_timestamp=`date -d "${data_solicitada_sem_hora}" +"%s"`
 for m in `find $backup/monthly -iname "$cliente.tz" | sort | cut -d'/' -f5`;
     do
@@ -277,61 +294,65 @@ elif [ `find $backup -iname "$data_solicitada"` == $backup/weekly/$data_solicita
                     echo -n "-------------> Descompactando mensal de um diario $mensal_mais_proximo: ";
                     tar -zxf $backup/monthly/$mensal_mais_proximo/home/$cliente.tz -g $baktodo/monthly/$mensal_mais_proximo/home/$cliente.dump -C $web_restore;
                     echo -e "${CHECK_MARK}";
-                fi
-                if [[ (-n "$semanal_mais_proxino_timestamp") && ( -z "$mensal_mais_proximo_timestamp" || "$semanal_mais_proxino_timestamp" -gt "$mensal_mais_proximo_timestamp" )  ]];
-                    then
-                        echo -n "-------------> Descompactando semanal de um diario $semanal_mais_proximo: ";
-                        tar -zxf $backup/weekly/$semanal_mais_proximo/home/$cliente.tz -g $baktodo/weekly/$semanal_mais_proximo/home/$cliente.dump -C $web_restore;
-                        echo -e "${CHECK_MARK}";
+            fi
+            if [[ (-n "$semanal_mais_proxino_timestamp") && ( -z "$mensal_mais_proximo_timestamp" || "$semanal_mais_proxino_timestamp" -gt "$mensal_mais_proximo_timestamp" )  ]];
+                then
+                    echo -n "-------------> Descompactando semanal de um diario $semanal_mais_proximo: ";
+                    tar -zxf $backup/weekly/$semanal_mais_proximo/home/$cliente.tz -g $baktodo/weekly/$semanal_mais_proximo/home/$cliente.dump -C $web_restore;
+                    echo -e "${CHECK_MARK}";
             fi
             echo -n "-------------> Descompactando diario $diario_mais_proximo: ";
             tar -zxf $backup/daily/$diario_mais_proximo/home/$cliente.tz -g $baktodo/daily/$diario_mais_proximo/home/$cliente.dump -C $web_restore;
             echo -e "${CHECK_MARK}";
-    fi
+fi
 case $tipo in
     c|C)
-        quota_maxima_do_cliente=$(quota -w $cliente | awk '/\/dev\/mapper\/work-home/ {print $4}' | tr -s "[:punct:]" " ");
-        tamanho_da_home_do_cliente=$(du -s $diretorio | awk '{print $1}' | tr -s "[:punct:]" " ");
-        if [ -z "$pasta" ] ;
+        quota_off=`quota -s $cliente | grep -o none`;
+        if [ -z "$quota_off" ];
             then
-                tamanho_do_backup=$(du -s $web_restore/$cliente/ | awk '{print $1}' | tr -s "[:punct:]" " ");
-            else
-                tamanho_do_backup=$(du -s $web_restore/$cliente/$pasta/ | awk '{print $1}' | tr -s "[:punct:]" " ");
-        fi
-        tamanho_total_da_home_com_backup=$(expr $tamanho_do_backup + $tamanho_da_home_do_cliente);
-        if [ "$tamanho_total_da_home_com_backup" -ge "$quota_maxima_do_cliente" ] ;
-            then
-                mega_byte=1024
-                excedente_de_espaco_com_backup=$(expr $tamanho_total_da_home_com_backup - $quota_maxima_do_cliente)
-                excedente_de_espaco_com_backup=$(expr $excedente_de_espaco_com_backup / $mega_byte);
-                quota_maxima_do_cliente=$(expr $quota_maxima_do_cliente / $mega_byte);
-                tamanho_do_backup=$(expr $tamanho_do_backup / $mega_byte);
-                tamanho_da_home_do_cliente=$(expr $tamanho_da_home_do_cliente / $mega_byte);
-                quota_necessaria=$(expr $quota_maxima_do_cliente + $excedente_de_espaco_com_backup);
-                echo "O modo cópia não poderá ser feito...."
-                echo "Quota atual: $quota_maxima_do_cliente MB";
-                echo "Usado: $tamanho_da_home_do_cliente MB";
-                echo "Backup: $tamanho_do_backup MB";
-                echo "Excedente com quota atual: $excedente_de_espaco_com_backup MB";
-                echo "Quota mínima necessária: $quota_necessaria MB"
-            else
-                echo -n "-------------> Criando pasta de copia $diretorio/backup-copia-$data_solicitada_sem_hora: ";
-                mkdir -m 755 $diretorio/backup-copia-$data_solicitada_sem_hora/
-                echo -e "${CHECK_MARK}"
+                quota_maxima_do_cliente=$(quota -w $cliente | awk '/\/dev\/mapper\/work-home/ {print $4}' | tr -s "[:punct:]" " ");
+                tamanho_da_home_do_cliente=$(du -s $diretorio | awk '{print $1}' | tr -s "[:punct:]" " ");
                 if [ -z "$pasta" ] ;
                     then
-                        echo -n "-------------> Restaurando cópia completa: ";
-                        mv $web_restore/$cliente/ $diretorio/backup-copia-$data_solicitada_sem_hora/
-                        echo -e "${CHECK_MARK}"
+                        tamanho_do_backup=$(du -s $web_restore/$cliente/ | awk '{print $1}' | tr -s "[:punct:]" " ");
                     else
-                        echo -n "-------------> Restaurando a pasta $pasta como cópia: ";
-                        mv $web_restore/$cliente/$pasta/ $diretorio/backup-copia-$data_solicitada_sem_hora/
-                        echo -e "${CHECK_MARK}"
-                    fi
-                    echo -n "-------------> Corrigindo o proprietário para $cliente: ";
-                    chown -R $cliente: $diretorio
-                    echo -e "${CHECK_MARK}";
-            fi
+                        tamanho_do_backup=$(du -s $web_restore/$cliente/$pasta/ | awk '{print $1}' | tr -s "[:punct:]" " ");
+                fi
+                tamanho_total_da_home_com_backup=$(expr $tamanho_do_backup + $tamanho_da_home_do_cliente);
+                if [ "$tamanho_total_da_home_com_backup" -ge "$quota_maxima_do_cliente" ] ;
+                    then
+                        mega_byte=1024
+                        excedente_de_espaco_com_backup=$(expr $tamanho_total_da_home_com_backup - $quota_maxima_do_cliente)
+                        excedente_de_espaco_com_backup=$(expr $excedente_de_espaco_com_backup / $mega_byte);
+                        quota_maxima_do_cliente=$(expr $quota_maxima_do_cliente / $mega_byte);
+                        tamanho_do_backup=$(expr $tamanho_do_backup / $mega_byte);
+                        tamanho_da_home_do_cliente=$(expr $tamanho_da_home_do_cliente / $mega_byte);
+                        quota_necessaria=$(expr $quota_maxima_do_cliente + $excedente_de_espaco_com_backup);
+                        echo "O modo cópia não poderá ser feito...."
+                        echo "Quota atual: $quota_maxima_do_cliente MB";
+                        echo "Usado: $tamanho_da_home_do_cliente MB";
+                        echo "Backup: $tamanho_do_backup MB";
+                        echo "Excedente com quota atual: $excedente_de_espaco_com_backup MB";
+                        echo "Quota mínima necessária: $quota_necessaria MB"
+                        over
+                fi
+        fi
+        echo -n "-------------> Criando pasta de copia $diretorio/backup-copia-$data_solicitada_sem_hora: ";
+        mkdir -m 755 $diretorio/backup-copia-$data_solicitada_sem_hora/
+        echo -e "${CHECK_MARK}"
+        if [ -z "$pasta" ];
+            then
+                echo -n "-------------> Restaurando cópia completa: ";
+                mv $web_restore/$cliente/ $diretorio/backup-copia-$data_solicitada_sem_hora/
+                echo -e "${CHECK_MARK}"
+            else
+                echo -n "-------------> Restaurando a pasta $pasta como cópia: ";
+                mv $web_restore/$cliente/$pasta/ $diretorio/backup-copia-$data_solicitada_sem_hora/
+                echo -e "${CHECK_MARK}"
+        fi
+        echo -n "-------------> Corrigindo o proprietário para $cliente: ";
+        chown -R $cliente: $diretorio
+        echo -e "${CHECK_MARK}";
     ;;
     s|S)
         if [ -z "$pasta" ] ;
