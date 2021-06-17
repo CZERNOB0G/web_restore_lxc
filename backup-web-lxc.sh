@@ -144,8 +144,8 @@ over ()
 function trap_ctrlc ()
 {
     echo " "
-    echo "Abortando!"
-    echo -n "removendo /var/backup/web_restore/ e Desmontando backup: "
+    echo "OK, Abortando operação..."
+    echo -n "Espere ao menos para desmontar as partições e remover o backup descompactado por favor: "
     if [ -d /var/backup/web_restore ];
         then
             rm -rf /var/backup/web_restore/
@@ -300,8 +300,12 @@ elif [ `find $backup -iname "$data_solicitada"` == $backup/weekly/$data_solicita
                         tar -zxf $backup/monthly/$mensal_mais_proximo/home/$cliente.tz -g $baktodo/monthly/$mensal_mais_proximo/home/$cliente.dump -C $web_restore;
                         tar -zxf $backup/weekly/$data_solicitada/home/$cliente.tz -g $baktodo/weekly/$data_solicitada/home/$cliente.dump -C $web_restore;
                     else
-                        tar -zxf $backup/monthly/$mensal_mais_proximo/home/$cliente.tz -g $baktodo/monthly/$mensal_mais_proximo/home/$cliente.dump -C $web_restore $cliente/$pasta;
-                        tar -zxf $backup/weekly/$data_solicitada/home/$cliente.tz -g $baktodo/weekly/$data_solicitada/home/$cliente.dump -C $web_restore $cliente/$pasta;
+                        pasta_backup_mensal=`tar -tf $backup/monthly/$mensal_mais_proximo/home/$cliente.tz -g $baktodo/monthly/$mensal_mais_proximo/home/$cliente.dump | grep -m1 -x $cliente/$pasta/`;
+                        if [ -n "$pasta_backup_mensal" ];
+                            then
+                                tar -zxf $backup/monthly/$mensal_mais_proximo/home/$cliente.tz -g $baktodo/monthly/$mensal_mais_proximo/home/$cliente.dump -C $web_restore $cliente/$pasta/;
+                        fi
+                        tar -zxf $backup/weekly/$data_solicitada/home/$cliente.tz -g $baktodo/weekly/$data_solicitada/home/$cliente.dump -C $web_restore $cliente/$pasta/;
                 fi
                 echo -e "${CHECK_MARK}";
         fi
@@ -313,7 +317,11 @@ elif [ `find $backup -iname "$data_solicitada"` == $backup/weekly/$data_solicita
                         then
                             tar -zxf $backup/monthly/$mensal_mais_proximo/home/$cliente.tz -g $baktodo/monthly/$mensal_mais_proximo/home/$cliente.dump -C $web_restore;
                         else
-                            tar -zxf $backup/monthly/$mensal_mais_proximo/home/$cliente.tz -g $baktodo/monthly/$mensal_mais_proximo/home/$cliente.dump -C $web_restore $cliente/$pasta;
+                            pasta_backup_mensal=`tar -tf $backup/monthly/$mensal_mais_proximo/home/$cliente.tz -g $baktodo/monthly/$mensal_mais_proximo/home/$cliente.dump | grep -m1 -x $cliente/$pasta/`;
+                            if [ -n "$pasta_backup_mensal" ];
+                                then
+                                    tar -zxf $backup/monthly/$mensal_mais_proximo/home/$cliente.tz -g $baktodo/monthly/$mensal_mais_proximo/home/$cliente.dump -C $web_restore $cliente/$pasta/;
+                            fi
                     fi
                     echo -e "${CHECK_MARK}";
             fi
@@ -324,7 +332,11 @@ elif [ `find $backup -iname "$data_solicitada"` == $backup/weekly/$data_solicita
                         then
                             tar -zxf $backup/weekly/$semanal_mais_proximo/home/$cliente.tz -g $baktodo/weekly/$semanal_mais_proximo/home/$cliente.dump -C $web_restore;
                         else
-                            tar -zxf $backup/weekly/$semanal_mais_proximo/home/$cliente.tz -g $baktodo/weekly/$semanal_mais_proximo/home/$cliente.dump -C $web_restore $cliente/$pasta;
+                            pasta_backup_semanal=`tar -tf $backup/weekly/$semanal_mais_proximo/home/$cliente.tz -g $baktodo/weekly/$semanal_mais_proximo/home/$cliente.dump | grep -m1 -x $cliente/$pasta/`;
+                            if [ -n "$pasta_backup_semanal" ];
+                                then
+                                    tar -zxf $backup/weekly/$semanal_mais_proximo/home/$cliente.tz -g $baktodo/weekly/$semanal_mais_proximo/home/$cliente.dump -C $web_restore $cliente/$pasta/;
+                            fi
                     fi
                     echo -e "${CHECK_MARK}";
             fi
@@ -333,7 +345,11 @@ elif [ `find $backup -iname "$data_solicitada"` == $backup/weekly/$data_solicita
                 then
                     tar -zxf $backup/daily/$diario_mais_proximo/home/$cliente.tz -g $baktodo/daily/$diario_mais_proximo/home/$cliente.dump -C $web_restore;
                 else
-                    tar -zxf $backup/daily/$diario_mais_proximo/home/$cliente.tz -g $baktodo/daily/$diario_mais_proximo/home/$cliente.dump -C $web_restore $cliente/$pasta;
+                    pasta_backup_diario=`tar -tf $backup/daily/$diario_mais_proximo/home/$cliente.tz -g $baktodo/daily/$diario_mais_proximo/home/$cliente.dump | grep -m1 -x $cliente/$pasta/`;
+                    if [ -n "$pasta_backup_diario" ];
+                        then
+                            tar -zxf $backup/daily/$diario_mais_proximo/home/$cliente.tz -g $baktodo/daily/$diario_mais_proximo/home/$cliente.dump -C $web_restore $cliente/$pasta/;
+                    fi
             fi
             echo -e "${CHECK_MARK}";
 fi
