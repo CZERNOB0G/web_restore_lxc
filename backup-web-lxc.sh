@@ -144,8 +144,8 @@ over ()
 function trap_ctrlc ()
 {
     echo " "
-    echo "Abortando!"
-    echo -n "removendo /var/backup/web_restore/ e Desmontando backup: "
+    echo "OK, Abortando operação..."
+    echo -n "Espere ao menos para desmontar as partições e remover o backup descompactado por favor: "
     if [ -d /var/backup/web_restore ];
         then
             rm -rf /var/backup/web_restore/
@@ -387,21 +387,22 @@ case $tipo in
         echo -e "${CHECK_MARK}";
     ;;
     s|S)
+        data=`date +%Y-%m-%d-%H-%M`
         if [ -z "$pasta" ] ;
             then
                 echo -n "-------------> Criando pasta de backup: ";
-                mkdir -m 755 -p /home/marcos/backup-$cliente-`date +%Y-%m-%d-%H-%M`/$data_solicitada/$cliente/
+                mkdir -m 755 -p /home/marcos/backup-$cliente-$data/$data_solicitada/$cliente/
                 echo -e "${CHECK_MARK}";
                 echo -n "-------------> Sobrescrevendo completamente a home: ";
-                mv $diretorio/* /home/marcos/backup-$cliente-`date +%Y-%m-%d-%H-%M`/$data_solicitada/$cliente/
+                mv $diretorio/* /home/marcos/backup-$cliente-$data/$data_solicitada/$cliente/
                 rsync -aq $web_restore/$cliente/ $diretorio/
                 echo -e "${CHECK_MARK}";
             else
                 echo -n "-------------> Criando pasta de backup: ";
-                mkdir -m 755 -p /home/marcos/backup-$cliente-`date +%Y-%m-%d-%H-%M`/$data_solicitada/$pasta/
+                mkdir -m 755 -p /home/marcos/backup-$cliente-$data/$data_solicitada/$pasta/
                 echo -e "${CHECK_MARK}";
                 echo -n "-------------> Sobrescrevendo a pasta $pasta: ";
-                mv $diretorio/$pasta/* /home/marcos/backup-$cliente-`date +%Y-%m-%d-%H-%M`/$data_solicitada/$pasta/
+                mv $diretorio/$pasta/* /home/marcos/backup-$cliente-$data/$data_solicitada/$pasta/
                 rsync -aq $web_restore/$cliente/$pasta/ $diretorio/$pasta/
                 echo -e "${CHECK_MARK}";
         fi
