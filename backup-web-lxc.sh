@@ -144,7 +144,7 @@ function trap_ctrlc ()
 {
     echo " "
     echo "OK, Abortando operação..."
-    echo -n "Espere ao menos para desmontar as partições e remover o backup descompactado por favor: "
+    echo -n "Desmontando backup e removendo /var/backup/web_restore/: "
     if [ -d /var/backup/web_restore ];
         then
             rm -rf /var/backup/web_restore/
