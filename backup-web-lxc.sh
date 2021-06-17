@@ -143,8 +143,8 @@ over () {
 function trap_ctrlc ()
 {
     echo " "
-    echo "OK, Abortando operação..."
-    echo -n "Desmontando backup e removendo /var/backup/web_restore/: "
+    echo "Abortando!"
+    echo -n "removendo /var/backup/web_restore/ e Desmontando backup: "
     if [ -d /var/backup/web_restore ];
         then
             rm -rf /var/backup/web_restore/
