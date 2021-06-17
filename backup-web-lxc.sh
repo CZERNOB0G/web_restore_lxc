@@ -128,7 +128,8 @@ mount $backup
 mount $baktodo
 mkdir -m 755 $backup/web_restore
 export web_restore="$backup/web_restore"
-over () {
+over () 
+{
     if [ -d /var/backup/web_restore ];
         then
             echo -n "-------------> Removendo $web_restore: "
