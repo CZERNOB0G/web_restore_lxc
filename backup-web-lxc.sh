@@ -273,36 +273,67 @@ fi
 if [ `find $backup -iname "$data_solicitada"` == $backup/monthly/$data_solicitada ];
     then
         echo -n "-------------> Descompactando um mensal $data_solicitada: ";
-        tar -zxf $backup/monthly/$data_solicitada/home/$cliente.tz -g $baktodo/monthly/$data_solicitada/home/$cliente.dump -C $web_restore;
+        if [ -z $pasta ];
+            then
+                tar -zxf $backup/monthly/$data_solicitada/home/$cliente.tz -g $baktodo/monthly/$data_solicitada/home/$cliente.dump -C $web_restore;
+            else
+                tar -zxf $backup/monthly/$data_solicitada/home/$cliente.tz -g $baktodo/monthly/$data_solicitada/home/$cliente.dump -C $web_restore $cliente/$pasta;
+        fi
         echo -e "${CHECK_MARK}";
 elif [ `find $backup -iname "$data_solicitada"` == $backup/weekly/$data_solicitada ];
     then
         if [ "$mensal_mais_proximo_timestamp" -gt "$semanal_mais_proxino_timestamp" ] || [ -z "$mensal_mais_proximo_timestamp" ];
             then
                 echo -n "-------------> Descompactando um semanal $data_solicitada: ";
-                tar -zxf $backup/weekly/$data_solicitada/home/$cliente.tz -g $baktodo/weekly/$data_solicitada/home/$cliente.dump -C $web_restore;
+                if [ -z $pasta ];
+                    then
+                        tar -zxf $backup/weekly/$data_solicitada/home/$cliente.tz -g $baktodo/weekly/$data_solicitada/home/$cliente.dump -C $web_restore;
+                    else
+                        tar -zxf $backup/weekly/$data_solicitada/home/$cliente.tz -g $baktodo/weekly/$data_solicitada/home/$cliente.dump -C $web_restore $cliente/$pasta;
+                fi
                 echo -e "${CHECK_MARK}";
             else
                 echo -n "-------------> Descompactando um semanal $data_solicitada com referência do mensal $mensal_mais_proximo: ";
-                tar -zxf $backup/monthly/$mensal_mais_proximo/home/$cliente.tz -g $baktodo/monthly/$mensal_mais_proximo/home/$cliente.dump -C $web_restore;
-                tar -zxf $backup/weekly/$data_solicitada/home/$cliente.tz -g $baktodo/weekly/$data_solicitada/home/$cliente.dump -C $web_restore;
+                if [ -z $pasta ];
+                    then
+                        tar -zxf $backup/monthly/$mensal_mais_proximo/home/$cliente.tz -g $baktodo/monthly/$mensal_mais_proximo/home/$cliente.dump -C $web_restore;
+                        tar -zxf $backup/weekly/$data_solicitada/home/$cliente.tz -g $baktodo/weekly/$data_solicitada/home/$cliente.dump -C $web_restore;
+                    else
+                        tar -zxf $backup/monthly/$mensal_mais_proximo/home/$cliente.tz -g $baktodo/monthly/$mensal_mais_proximo/home/$cliente.dump -C $web_restore $cliente/$pasta;
+                        tar -zxf $backup/weekly/$data_solicitada/home/$cliente.tz -g $baktodo/weekly/$data_solicitada/home/$cliente.dump -C $web_restore $cliente/$pasta;
+                fi
                 echo -e "${CHECK_MARK}";
         fi
         else
             if [ -n "$mensal_mais_proximo_timestamp" ] ;
                 then
                     echo -n "-------------> Descompactando mensal de um diario $mensal_mais_proximo: ";
-                    tar -zxf $backup/monthly/$mensal_mais_proximo/home/$cliente.tz -g $baktodo/monthly/$mensal_mais_proximo/home/$cliente.dump -C $web_restore;
+                    if [ -z $pasta ];
+                        then
+                            tar -zxf $backup/monthly/$mensal_mais_proximo/home/$cliente.tz -g $baktodo/monthly/$mensal_mais_proximo/home/$cliente.dump -C $web_restore;
+                        else
+                            tar -zxf $backup/monthly/$mensal_mais_proximo/home/$cliente.tz -g $baktodo/monthly/$mensal_mais_proximo/home/$cliente.dump -C $web_restore $cliente/$pasta;
+                    fi
                     echo -e "${CHECK_MARK}";
             fi
             if [[ (-n "$semanal_mais_proxino_timestamp") && ( -z "$mensal_mais_proximo_timestamp" || "$semanal_mais_proxino_timestamp" -gt "$mensal_mais_proximo_timestamp" )  ]];
                 then
                     echo -n "-------------> Descompactando semanal de um diario $semanal_mais_proximo: ";
-                    tar -zxf $backup/weekly/$semanal_mais_proximo/home/$cliente.tz -g $baktodo/weekly/$semanal_mais_proximo/home/$cliente.dump -C $web_restore;
+                    if [ -z $pasta ];
+                        then
+                            tar -zxf $backup/weekly/$semanal_mais_proximo/home/$cliente.tz -g $baktodo/weekly/$semanal_mais_proximo/home/$cliente.dump -C $web_restore;
+                        else
+                            tar -zxf $backup/weekly/$semanal_mais_proximo/home/$cliente.tz -g $baktodo/weekly/$semanal_mais_proximo/home/$cliente.dump -C $web_restore $cliente/$pasta;
+                    fi
                     echo -e "${CHECK_MARK}";
             fi
             echo -n "-------------> Descompactando diario $diario_mais_proximo: ";
-            tar -zxf $backup/daily/$diario_mais_proximo/home/$cliente.tz -g $baktodo/daily/$diario_mais_proximo/home/$cliente.dump -C $web_restore;
+            if [ -z $pasta ];
+                then
+                    tar -zxf $backup/daily/$diario_mais_proximo/home/$cliente.tz -g $baktodo/daily/$diario_mais_proximo/home/$cliente.dump -C $web_restore;
+                else
+                    tar -zxf $backup/daily/$diario_mais_proximo/home/$cliente.tz -g $baktodo/daily/$diario_mais_proximo/home/$cliente.dump -C $web_restore $cliente/$pasta;
+            fi
             echo -e "${CHECK_MARK}";
 fi
 case $tipo in
