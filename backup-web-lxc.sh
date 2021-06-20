@@ -67,7 +67,9 @@ case $tipo in
                 if [ -n "$homes_parecidas" ];
                     then
                         echo "Exitem essas homes parecidas: ";
+                        echo " ";
                         echo "$homes_parecidas";
+                        echo " ";
                 fi
                 umount $backup
                 umount $baktodo
@@ -141,7 +143,9 @@ if [ ! -d "$diretorio" ];
         if [ -n "$homes_parecidas" ];
             then
                 echo "Exitem essas homes parecidas: ";
+                echo " ";
                 echo "$homes_parecidas";
+                echo " ";
         fi
         exit;
 fi
