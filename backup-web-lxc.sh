@@ -387,7 +387,7 @@ elif [ `find $backup -iname "$data_solicitada"` == $backup/weekly/$data_solicita
 fi
 case $tipo in
     c|C)
-        quota_off=`quota -s $cliente | grep -o none`;
+        quota_off=`quota -s $cliente 2>/dev/null | grep -o none`;
         if [ -z "$quota_off" ];
             then
                 quota_maxima_do_cliente=$(quota -w $cliente | awk '/\/dev\/mapper\/work-home/ {print $4}' | tr -s "[:punct:]" " ");
