@@ -47,7 +47,7 @@ case $tipo in
                 echo "==============================="
                 exit;
         fi
-        if [ "/home/$diretorio_dest" = "/home/$cliente" ];
+        if [ "/home/$destino" = "/home/$cliente" ];
             then
                 echo "========================================="
                 echo "= O CP não pode ser feito para a mesma  ="
