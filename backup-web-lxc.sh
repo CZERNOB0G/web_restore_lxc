@@ -63,7 +63,7 @@ case $tipo in
                 echo "================================="
                 echo "= Este cliente não possui home  ="
                 echo "================================="
-                homes_parecidas=`ls -ld /home/$cliente* | awk -F'/' '{print $3}'`;
+                homes_parecidas=`ls -ld /home/$cliente* 2>/dev/null | awk -F'/' '{print $3}'`;
                 if [ -n "$homes_parecidas" ];
                     then
                         echo "Exitem essas homes parecidas: ";
@@ -137,7 +137,7 @@ if [ ! -d "$diretorio" ];
         echo "================================="
         echo "= Este cliente não possui home  ="
         echo "================================="
-        homes_parecidas=`ls -ld /home/$cliente* | awk -F'/' '{print $3}'`;
+        homes_parecidas=`ls -ld /home/$cliente* 2>/dev/null | awk -F'/' '{print $3}'`;
         if [ -n "$homes_parecidas" ];
             then
                 echo "Exitem essas homes parecidas: ";
