@@ -259,7 +259,7 @@ if [ -d "/home/marcos/backup-$cliente-$data/$data_solicitada/$pasta/" -a -n "$pa
         echo "=========================================================================="
         over
 fi
-if [ -d "$diretorio_dest/backup-$cliente-completa-$data_solicitada_sem_hora/" -a -z "$pasta" -a "${tipo^^}" = "CP" ];
+if [ -d "$diretorio_dest/backup-$cliente-completo-$data_solicitada_sem_hora/" -a -z "$pasta" -a "${tipo^^}" = "CP" ];
     then
         echo "====================================================="
         echo "= Já possui backup cópia dessa data na home destino ="
@@ -516,11 +516,11 @@ case $tipo in
     cp|CP)
         if [ -z "$pasta" ] ;
             then
-                echo -n "-------------> Criando pasta do backup /home/$destino/backup-$cliente-completa-$data_solicitada_sem_hora/: ";
-                mkdir -m 755 /home/$destino/backup-$cliente-completa-$data_solicitada_sem_hora/
+                echo -n "-------------> Criando pasta do backup /home/$destino/backup-$cliente-completo-$data_solicitada_sem_hora/: ";
+                mkdir -m 755 /home/$destino/backup-$cliente-completo-$data_solicitada_sem_hora/
                 echo -e "${CHECK_MARK}";
                 echo -n "-------------> Restaurando o diretório completa como cópia em $destino: ";
-                rsync -aq $web_restore/$cliente/ /home/$destino/backup-$cliente-completa-$data_solicitada_sem_hora/
+                rsync -aq $web_restore/$cliente/ /home/$destino/backup-$cliente-completo-$data_solicitada_sem_hora/
                 echo -e "${CHECK_MARK}";
             else
                 echo -n "-------------> Criando pasta do backup : ";
