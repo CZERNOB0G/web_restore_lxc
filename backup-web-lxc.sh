@@ -16,6 +16,7 @@ if [ -z "$cliente" -o -z "$tipo" ];
         echo "= CP (Cópia para outra pasta) ="
         echo "= I (Incremental)             ="
         echo "= L (Listar)                  ="
+        echo "= SCP (Cópia para outro serv) ="
         echo "==============================="
         exit;
 fi
@@ -31,6 +32,15 @@ case $tipo in
     i|I)
         echo "================================="
         echo "= Modo incremental selecionado! ="
+    ;;
+    scp|SCP)
+        echo "==============================================="
+        echo "= Modo cópia para outro servidor selecionado! ="
+        echo "======================================"
+        echo "= Informe o nome do servidor destino: "
+        echo "======================================"
+        read destino_t
+        servidor=`echo $destino_t | grep -o '[[:digit:]]*'`;
     ;;
     cp|CP)
         echo "============================================"
@@ -50,7 +60,7 @@ case $tipo in
         if [ "/home/$destino" = "/home/$cliente" ];
             then
                 echo "==================================================="
-                echo "= O destino não pode ser a mesma home do cliente  ="
+                echo "= O destino não pode ser a mesma home do cliente ="
                 echo "==================================================="
                 exit;
         fi
@@ -136,6 +146,7 @@ case $tipo in
         echo "= CP (Cópia para outra pasta) ="
         echo "= I (Incremental)             ="
         echo "= L (Listar)                  ="
+        echo "= SCP (Cópia para outro serv) ="
         echo "==============================="
         exit;
     ;;
@@ -234,42 +245,42 @@ data_solicitada="${data_find[$id_data_solicitada]}";
 data_solicitada_sem_hora="${data_solicitada:0:10}";
 data_solicitada_timestamp=`date -d "${data_solicitada_sem_hora}" +"%s"`;
 data=`date +%Y-%m-%d-%H-%M`;
-if [ -d "/home/marcos/backup-$cliente-$data/$data_solicitada/" -a -z "$pasta" ];
+if [ -d "/home/marcos/backup-$cliente-$data/$data_solicitada/" -a -z "$pasta" -a "${tipo^}" = "S" ];
     then
         echo "=================================================================="
         echo "= Já possui backup sobrescrito dessa data na sua home dessa data ="
         echo "=================================================================="
         over
 fi
-if [ -d "/home/marcos/backup-$cliente-$data/$data_solicitada/$pasta/" -a -n "$pasta" ];
+if [ -d "/home/marcos/backup-$cliente-$data/$data_solicitada/$pasta/" -a -n "$pasta" -a "${tipo^}" = "S" ];
     then
         echo "=========================================================================="
         echo "= Já possui backup sobrescrito dessa data e pasta na sua home dessa data ="
         echo "=========================================================================="
         over
 fi
-if [ -d "$diretorio_dest/backup-$cliente-completo-$data_solicitada_sem_hora/" -a -z "$pasta" ];
+if [ -d "$diretorio_dest/backup-$cliente-completo-$data_solicitada_sem_hora/" -a -z "$pasta" -a "${tipo^^}" = "CP" ];
     then
         echo "====================================================="
         echo "= Já possui backup cópia dessa data na home destino ="
         echo "====================================================="
         over
 fi
-if [ -d "$diretorio_dest/backup-$cliente-parcial-$data_solicitada_sem_hora/$pasta/" -a -n "$pasta" ];
+if [ -d "$diretorio_dest/backup-$cliente-parcial-$data_solicitada_sem_hora/$pasta/" -a -n "$pasta" -a "${tipo^^}" = "CP" ];
     then
         echo "============================================================="
         echo "= Já possui backup cópia dessa data e pasta na home destino ="
         echo "============================================================="
         over
 fi
-if [ -d "$diretorio/backup-copia-completo-$data_solicitada_sem_hora/" -a -z "$pasta" ];
+if [ -d "$diretorio/backup-copia-completo-$data_solicitada_sem_hora/" -a -z "$pasta" -a "${tipo^}" = "C" ];
     then
         echo "========================================================"
         echo "= Já possui backup cópia dessa data na home do cliente ="
         echo "========================================================"
         over
 fi
-if [ -d "$diretorio/backup-copia-parcial-$data_solicitada_sem_hora/$pasta/" -a -n "$pasta" ];
+if [ -d "$diretorio/backup-copia-parcial-$data_solicitada_sem_hora/$pasta/" -a -n "$pasta" -a "${tipo^}" = "C" ];
     then
         echo "================================================================"
         echo "= Já possui backup cópia dessa pasta e data na home do cliente ="
@@ -457,6 +468,25 @@ case $tipo in
                 rsync -aq $web_restore/$cliente/$pasta/ $diretorio/backup-copia-parcial-$data_solicitada_sem_hora/$pasta/
                 echo -e "${CHECK_MARK}"
         fi
+    ;;
+    scp|SCP)
+        if [ -z "$pasta" ] ;
+            then
+                echo -n "-------------> Enviando backup para a home do outro servidor: ";
+                scp -r $web_restore/$cliente/ marcos@web$servidor.prv.f1.k8.com.br:
+                echo -e "${CHECK_MARK}";
+            else
+                echo -n "-------------> Enviando pasta para a home do outro servidor: ";
+                scp -r $web_restore/$cliente/$pasta/ marcos@web$servidor.prv.f1.k8.com.br:
+                echo -e "${CHECK_MARK}";
+        fi
+        if [ "$?" -eq "0" ];
+            then
+                echo "-------------> A transferência foi feita!";
+            else
+                echo " -------------> A conexão não foi bem sucedida!";
+        fi
+        over
     ;;
     s|S)
         if [ -z "$pasta" ] ;
