@@ -63,6 +63,12 @@ case $tipo in
                 echo "================================="
                 echo "= Este cliente não possui home  ="
                 echo "================================="
+                homes_parecidas=`ls -ld /home/$cliente* | awk -F'/' '{print $3}'`;
+                if [ -n "$homes_parecidas" ];
+                    then
+                        echo "Exitem essas homes parecidas: ";
+                        echo "$homes_parecidas";
+                fi
                 umount $backup
                 umount $baktodo
                 exit;
@@ -131,6 +137,12 @@ if [ ! -d "$diretorio" ];
         echo "================================="
         echo "= Este cliente não possui home  ="
         echo "================================="
+        homes_parecidas=`ls -ld /home/$cliente* | awk -F'/' '{print $3}'`;
+        if [ -n "$homes_parecidas" ];
+            then
+                echo "Exitem essas homes parecidas: ";
+                echo "$homes_parecidas";
+        fi
         exit;
 fi
 export CHECK_MARK="\033[0;32m\xE2\x9C\x94\033[0m";
