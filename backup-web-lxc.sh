@@ -35,6 +35,18 @@ case $tipo in
     cp|CP)
         echo "============================================"
         echo "= Modo copia para outra pasta selecionado! ="
+        echo "==================================================="
+        echo "Informe o nome da conta de destino neste servidor: "
+        echo "==================================================="
+        read destino
+        diretorio_dest="/home/$destino"
+        if [ ! -d "$diretorio_dest" ];
+            then
+                echo "==============================="
+                echo "= Esta conta não possui home  ="
+                echo "==============================="
+                exit;
+        fi
     ;;
     l|L)
         echo "============================"
@@ -201,11 +213,7 @@ if [ -z ${data_find[$id_data_solicitada]} ];
         echo "=================="
         over
 fi
-data_solicitada="${data_find[$id_data_solicitada]}"
-data_solicitada_sem_hora="${data_solicitada:0:10}"
-if [ "${tipo^}" = "C" ];
-    then
-        if [ -d "$diretorio/backup-copia-$data_solicitada_sem_hora/" -a -z "$pasta" ];
+if [ -d "$diretorio/backup-copia-$data_solicitada_sem_hora/" -a -z "$pasta" ];
             then
                 echo "========================================================"
                 echo "= Já possui backup cópia dessa data na home do cliente ="
@@ -218,16 +226,17 @@ if [ "${tipo^}" = "C" ];
                 echo "= Já possui backup cópia dessa pasta e data na home do cliente ="
                 echo "================================================================"
                 over
-        fi
 fi
-data_solicitada_timestamp=`date -d "${data_solicitada_sem_hora}" +"%s"`
+data_solicitada="${data_find[$id_data_solicitada]}";
+data_solicitada_sem_hora="${data_solicitada:0:10}";
+data_solicitada_timestamp=`date -d "${data_solicitada_sem_hora}" +"%s"`;
 for m in `find $backup/monthly -iname "$cliente.tz" | sort | cut -d'/' -f5`;
     do
         mensal[$id_mes]=$m;
         for m2 in ${mensal[*]};
             do
-                array_mensal_sem_hora="${m2:0:10}"
-                array_mensal_timestamp=`date -d "${array_mensal_sem_hora}" +"%s"`
+                array_mensal_sem_hora="${m2:0:10}";
+                array_mensal_timestamp=`date -d "${array_mensal_sem_hora}" +"%s"`;
                 if  [ ${array_mensal_timestamp} -le ${data_solicitada_timestamp} ];
                     then
                         mensal_mais_proximo=$m2;
@@ -240,8 +249,8 @@ for s in `find $backup/weekly -iname "$cliente.tz" | sort | cut -d'/' -f5`;
         semanal[$id_semana]=$s;
         for s2 in ${semanal[*]};
             do
-                array_semanal_sem_hora="${s2:0:10}"
-                array_semanal_timestamp=`date -d "${array_semanal_sem_hora}" +"%s"`
+                array_semanal_sem_hora="${s2:0:10}";
+                array_semanal_timestamp=`date -d "${array_semanal_sem_hora}" +"%s"`;
                 if [ ${array_semanal_timestamp} -le ${data_solicitada_timestamp} ];
                     then
                         semanal_mais_proximo=$s2;
@@ -254,8 +263,8 @@ for d in `find $backup/daily -iname "$cliente.tz" | sort | cut -d'/' -f5`;
         diario[$id_dia]=$d;
         for d2 in ${diario[*]};
             do
-                array_diario_sem_hora="${d2:0:10}"
-                array_diario_timestamp=`date -d "${array_diario_sem_hora}" +"%s"`
+                array_diario_sem_hora="${d2:0:10}";
+                array_diario_timestamp=`date -d "${array_diario_sem_hora}" +"%s"`;
                 if [ ${array_diario_timestamp} -le ${data_solicitada_timestamp} ];
                     then
                         diario_mais_proximo=$d2;
@@ -265,11 +274,11 @@ for d in `find $backup/daily -iname "$cliente.tz" | sort | cut -d'/' -f5`;
 done
 if [ -n "$mensal_mais_proximo" ];
     then
-        mensal_mais_proximo_timestamp=`date -d "${mensal_mais_proximo:0:10}" +"%s"`
+        mensal_mais_proximo_timestamp=`date -d "${mensal_mais_proximo:0:10}" +"%s"`;
 fi
 if [ -n "$semanal_mais_proximo" ];
     then
-        semanal_mais_proxino_timestamp=`date -d "${semanal_mais_proximo:0:10}" +"%s"`
+        semanal_mais_proxino_timestamp=`date -d "${semanal_mais_proximo:0:10}" +"%s"`;
 fi
 if [ `find $backup -iname "$data_solicitada"` == $backup/monthly/$data_solicitada ];
     then
@@ -360,7 +369,7 @@ case $tipo in
             then
                 quota_maxima_do_cliente=$(quota -w $cliente | awk '/\/dev\/mapper\/work-home/ {print $4}' | tr -s "[:punct:]" " ");
                 tamanho_da_home_do_cliente=$(du -s $diretorio | awk '{print $1}' | tr -s "[:punct:]" " ");
-                if [ -z "$pasta" ] ;
+                if [ -z "$pasta" ];
                     then
                         tamanho_do_backup=$(du -s $web_restore/$cliente/ | awk '{print $1}' | tr -s "[:punct:]" " ");
                     else
@@ -443,20 +452,6 @@ case $tipo in
         echo -e "${CHECK_MARK}";
     ;;
     cp|CP)
-        echo "==================================================="
-        echo "Informe o nome da conta de destino neste servidor: "
-        echo "==================================================="
-        read destino
-        diretorio_dest="/home/$destino"
-        if [ ! -d "$diretorio_dest" ];
-            then
-                echo "==============================="
-                echo "= Esta conta não possui home  ="
-                echo "==============================="
-                over
-                exit;
-        fi
-        echo "==================================================="
         echo -n "-------------> Criando pasta do backup: ";
         mkdir -m 755 /home/$destino/backup-$cliente-$data_solicitada_sem_hora/
         echo -e "${CHECK_MARK}";
