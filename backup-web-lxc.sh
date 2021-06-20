@@ -470,14 +470,8 @@ case $tipo in
         fi
     ;;
     scp|SCP)
-        if [ -z "$pasta" ] ;
-            then
-                echo "-------------> Enviando backup para a home do outro servidor: ";
-                scp -r $web_restore/$cliente/ marcos@web$servidor.prv.f1.k8.com.br:
-            else
-                echo "-------------> Enviando pasta para a home do outro servidor: ";
-                scp -r $web_restore/$cliente/$pasta/ marcos@web$servidor.prv.f1.k8.com.br:
-        fi
+        echo "-------------> Enviando backup para a home do outro servidor: ";
+        scp -r $web_restore/$cliente/ marcos@web$servidor.prv.f1.k8.com.br:
         if [ "$?" -eq "0" ];
             then
                 echo "-------------> A transferência foi feita!";
