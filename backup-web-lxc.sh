@@ -181,10 +181,7 @@ function trap_ctrlc ()
     echo " "
     echo "Abortando!"
     echo -n "Removendo /var/backup/web_restore/ e desmontando backup: "
-    if [ -d /var/backup/web_restore ];
-        then
-            rm -rf /var/backup/web_restore/
-    fi
+    rm -rf /var/backup/web_restore/
     umount /var/backup/ /var/baktodo/
     echo -e "${CHECK_MARK}";
     exit;
