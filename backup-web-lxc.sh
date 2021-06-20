@@ -214,18 +214,18 @@ if [ -z ${data_find[$id_data_solicitada]} ];
         over
 fi
 if [ -d "$diretorio/backup-copia-$data_solicitada_sem_hora/" -a -z "$pasta" ];
-            then
-                echo "========================================================"
-                echo "= Já possui backup cópia dessa data na home do cliente ="
-                echo "========================================================"
-                over
-        fi
-        if [ -d "$diretorio/backup-copia-$data_solicitada_sem_hora/$pasta/" -a -n "$pasta" ];
-            then
-                echo "================================================================"
-                echo "= Já possui backup cópia dessa pasta e data na home do cliente ="
-                echo "================================================================"
-                over
+    then
+        echo "========================================================"
+        echo "= Já possui backup cópia dessa data na home do cliente ="
+        echo "========================================================"
+        over
+fi
+if [ -d "$diretorio/backup-copia-$data_solicitada_sem_hora/$pasta/" -a -n "$pasta" ];
+    then
+        echo "================================================================"
+        echo "= Já possui backup cópia dessa pasta e data na home do cliente ="
+        echo "================================================================"
+        over
 fi
 data_solicitada="${data_find[$id_data_solicitada]}";
 data_solicitada_sem_hora="${data_solicitada:0:10}";
