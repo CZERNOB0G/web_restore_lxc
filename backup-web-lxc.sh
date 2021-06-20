@@ -430,12 +430,9 @@ case $tipo in
                 mv $web_restore/$cliente/$pasta/ $diretorio/backup-copia-$data_solicitada_sem_hora/
                 echo -e "${CHECK_MARK}"
         fi
-        echo -n "-------------> Corrigindo o proprietário para $cliente: ";
-        chown -R $cliente: $diretorio
-        echo -e "${CHECK_MARK}";
     ;;
     s|S)
-        data=`date +%Y-%m-%d-%H-%M`
+        data=`date +%Y-%m-%d-%H-%M`;
         if [ -z "$pasta" ] ;
             then
                 echo -n "-------------> Criando pasta de backup: ";
@@ -454,10 +451,7 @@ case $tipo in
                 rsync -aq $web_restore/$cliente/$pasta/ $diretorio/$pasta/
                 echo -e "${CHECK_MARK}";
         fi
-        echo -n "-------------> Corrigindo o proprietário para $cliente: ";
-        chown -R $cliente: $diretorio
         chown -R marcos: /home/marcos/
-        echo -e "${CHECK_MARK}";
     ;;
     i|I)
         if [ -z "$pasta" ] ;
@@ -470,9 +464,6 @@ case $tipo in
                 rsync -aq $web_restore/$cliente/$pasta/ $diretorio/$pasta/
                 echo -e "${CHECK_MARK}";
         fi
-        echo -n "-------------> Corrigindo o proprietário para $cliente: ";
-        chown -R $cliente: $diretorio
-        echo -e "${CHECK_MARK}";
     ;;
     cp|CP)
         echo -n "-------------> Criando pasta do backup: ";
@@ -488,11 +479,15 @@ case $tipo in
                 mv $web_restore/$cliente/$pasta /home/$destino/backup-$cliente-$data_solicitada_sem_hora/
                 echo -e "${CHECK_MARK}";
         fi
-        echo -n "-------------> Corrigindo o proprietário para $cliente: ";
-        chown -R $destino: /home/$destino/
-        echo -e "${CHECK_MARK}";
     ;;
 esac
+verifica_user=`id $cliente 2>/dev/null`;
+if [ -n "$verifica_user" ];
+    then
+        echo -n "-------------> Corrigindo o proprietário para $cliente: ";
+        chown -R $cliente: $diretorio
+        echo -e "${CHECK_MARK}";
+fi
 over
 echo "-------------> BACKUP FINALIZADO!"
 exit;
