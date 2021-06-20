@@ -49,9 +49,9 @@ case $tipo in
         fi
         if [ "/home/$diretorio_dest" = "/home/$cliente" ];
             then
-                echo "========================================="
-                echo "= O CP não pode ser feito para a mesma  ="
-                echo "========================================="
+                echo "==================================================="
+                echo "= O destino não pode ser a mesma home do cliente  ="
+                echo "==================================================="
                 exit;
         fi
     ;;
