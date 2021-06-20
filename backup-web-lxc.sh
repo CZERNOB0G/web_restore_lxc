@@ -259,7 +259,7 @@ if [ -d "/home/marcos/backup-$cliente-$data/$data_solicitada/$pasta/" -a -n "$pa
         echo "=========================================================================="
         over
 fi
-if [ -d "$diretorio_dest/backup-$cliente-completo-$data_solicitada_sem_hora/" -a -z "$pasta" -a "${tipo^^}" = "CP" ];
+if [ -d "$diretorio_dest/backup-$cliente-completa-$data_solicitada_sem_hora/" -a -z "$pasta" -a "${tipo^^}" = "CP" ];
     then
         echo "====================================================="
         echo "= Já possui backup cópia dessa data na home destino ="
@@ -273,7 +273,7 @@ if [ -d "$diretorio_dest/backup-$cliente-parcial-$data_solicitada_sem_hora/$past
         echo "============================================================="
         over
 fi
-if [ -d "$diretorio/backup-copia-completo-$data_solicitada_sem_hora/" -a -z "$pasta" -a "${tipo^}" = "C" ];
+if [ -d "$diretorio/backup-copia-completa-$data_solicitada_sem_hora/" -a -z "$pasta" -a "${tipo^}" = "C" ];
     then
         echo "========================================================"
         echo "= Já possui backup cópia dessa data na home do cliente ="
@@ -423,7 +423,7 @@ verifica_user=`id $cliente 2>/dev/null`;
 case $tipo in
     c|C)
         quota_off=`quota -s $cliente 2>/dev/null | grep -o none`;
-        if [ -n "$quota_off" -a "$quota_off" != "none" -o -n "$verifica_user" ];
+        if [ -n "$quota_off" -a "$quota_off" != "none" -a -n "$verifica_user" ];
             then
                 quota_maxima_do_cliente=$(quota -w $cliente | awk '/\/dev\/mapper\/work-home/ {print $4}' | tr -s "[:punct:]" " ");
                 tamanho_da_home_do_cliente=$(du -s $diretorio | awk '{print $1}' | tr -s "[:punct:]" " ");
@@ -454,14 +454,14 @@ case $tipo in
         fi
         if [ -z "$pasta" ];
             then
-                echo -n "-------------> Criando pasta de copia $diretorio/backup-copia-completo-$data_solicitada_sem_hora/ : ";
-                mkdir -m 755 -p $diretorio/backup-copia-completo-$data_solicitada_sem_hora/
+                echo -n "-------------> Criando pasta de copia $diretorio/backup-copia-completa-$data_solicitada_sem_hora/: ";
+                mkdir -m 755 -p $diretorio/backup-copia-completa-$data_solicitada_sem_hora/
                 echo -e "${CHECK_MARK}"
                 echo -n "-------------> Restaurando cópia completa: ";
-                rsync -aq $web_restore/$cliente/ $diretorio/backup-copia-completo-$data_solicitada_sem_hora/
+                rsync -aq $web_restore/$cliente/ $diretorio/backup-copia-completa-$data_solicitada_sem_hora/
                 echo -e "${CHECK_MARK}"
             else
-                echo -n "-------------> Criando pasta de copia $diretorio/backup-copia-parcial-$data_solicitada_sem_hora/$pasta/ : ";
+                echo -n "-------------> Criando pasta de copia $diretorio/backup-copia-parcial-$data_solicitada_sem_hora/$pasta/: ";
                 mkdir -m 755 -p $diretorio/backup-copia-parcial-$data_solicitada_sem_hora/$pasta/
                 echo -e "${CHECK_MARK}"
                 echo -n "-------------> Restaurando a pasta ../$pasta/ como cópia: ";
@@ -476,7 +476,7 @@ case $tipo in
             then
                 echo "-------------> A transferência foi feita!";
             else
-                echo " -------------> A conexão não foi bem sucedida!";
+                echo "-------------> A conexão não foi bem sucedida!";
         fi
         over
     ;;
@@ -494,7 +494,7 @@ case $tipo in
                 echo -n "-------------> Criando pasta de backup: ";
                 mkdir -m 755 -p /home/marcos/backup-$cliente-$data/$data_solicitada/$pasta/
                 echo -e "${CHECK_MARK}";
-                echo -n "-------------> Sobrescrevendo a pasta ../$pasta/ : ";
+                echo -n "-------------> Sobrescrevendo a pasta ../$pasta/: ";
                 mv $diretorio/$pasta/* /home/marcos/backup-$cliente-$data/$data_solicitada/$pasta/
                 rsync -aq $web_restore/$cliente/$pasta/ $diretorio/$pasta/
                 echo -e "${CHECK_MARK}";
@@ -508,7 +508,7 @@ case $tipo in
                 rsync -aq $web_restore/$cliente/ $diretorio/
                 echo -e "${CHECK_MARK}";
             else
-                echo -n "-------------> Incrementando a pasta ../$pasta/ : ";
+                echo -n "-------------> Incrementando a pasta ../$pasta/: ";
                 rsync -aq $web_restore/$cliente/$pasta/ $diretorio/$pasta/
                 echo -e "${CHECK_MARK}";
         fi
@@ -516,17 +516,17 @@ case $tipo in
     cp|CP)
         if [ -z "$pasta" ] ;
             then
-                echo -n "-------------> Criando pasta do backup /home/$destino/backup-$cliente-completo-$data_solicitada_sem_hora/: ";
-                mkdir -m 755 /home/$destino/backup-$cliente-completo-$data_solicitada_sem_hora/
+                echo -n "-------------> Criando pasta do backup /home/$destino/backup-$cliente-completa-$data_solicitada_sem_hora/: ";
+                mkdir -m 755 /home/$destino/backup-$cliente-completa-$data_solicitada_sem_hora/
                 echo -e "${CHECK_MARK}";
-                echo -n "-------------> Restaurando o diretório completo como cópia em $destino: ";
-                rsync -aq $web_restore/$cliente/ /home/$destino/backup-$cliente-completo-$data_solicitada_sem_hora/
+                echo -n "-------------> Restaurando o diretório completa como cópia em $destino: ";
+                rsync -aq $web_restore/$cliente/ /home/$destino/backup-$cliente-completa-$data_solicitada_sem_hora/
                 echo -e "${CHECK_MARK}";
             else
                 echo -n "-------------> Criando pasta do backup : ";
                 mkdir -m 755 -p /home/$destino/backup-$cliente-parcial-$data_solicitada_sem_hora/$pasta/
                 echo -e "${CHECK_MARK}";
-                echo -n "-------------> Restaurando a pasta $pasta como cópia em /home/$destino/backup-$cliente-parcial-$data_solicitada_sem_hora/$pasta/ : ";
+                echo -n "-------------> Restaurando a pasta $pasta como cópia em /home/$destino/backup-$cliente-parcial-$data_solicitada_sem_hora/$pasta/: ";
                 rsync -aq $web_restore/$cliente/$pasta/ /home/$destino/backup-$cliente-parcial-$data_solicitada_sem_hora/$pasta/
                 echo -e "${CHECK_MARK}";
         fi
@@ -534,7 +534,7 @@ case $tipo in
 esac
 if [ -n "$verifica_user" ];
     then
-        echo -n "-------------> Corrigindo o proprietário para $cliente : ";
+        echo -n "-------------> Corrigindo o proprietário para $cliente: ";
         chown -R $cliente: $diretorio
         echo -e "${CHECK_MARK}";
 fi
