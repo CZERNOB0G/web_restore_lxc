@@ -165,12 +165,9 @@ mkdir -m 755 $backup/web_restore
 export web_restore="$backup/web_restore"
 over () 
 {
-    if [ -d /var/backup/web_restore ];
-        then
-            echo -n "-------------> Removendo $web_restore: "
-            rm -rf /var/backup/web_restore
-            echo -e "${CHECK_MARK}";
-    fi
+    echo -n "-------------> Removendo $web_restore: "
+    rm -rf /var/backup/web_restore
+    echo -e "${CHECK_MARK}";
     echo -n "-------------> Desmontando backup: "
     umount $backup $baktodo
     echo -e "${CHECK_MARK}";
