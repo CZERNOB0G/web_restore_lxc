@@ -472,13 +472,11 @@ case $tipo in
     scp|SCP)
         if [ -z "$pasta" ] ;
             then
-                echo -n "-------------> Enviando backup para a home do outro servidor: ";
+                echo "-------------> Enviando backup para a home do outro servidor: ";
                 scp -r $web_restore/$cliente/ marcos@web$servidor.prv.f1.k8.com.br:
-                echo -e "${CHECK_MARK}";
             else
-                echo -n "-------------> Enviando pasta para a home do outro servidor: ";
+                echo "-------------> Enviando pasta para a home do outro servidor: ";
                 scp -r $web_restore/$cliente/$pasta/ marcos@web$servidor.prv.f1.k8.com.br:
-                echo -e "${CHECK_MARK}";
         fi
         if [ "$?" -eq "0" ];
             then
