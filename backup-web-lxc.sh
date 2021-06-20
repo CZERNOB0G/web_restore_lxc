@@ -236,6 +236,9 @@ if [ -z ${data_find[$id_data_solicitada]} ];
         echo "=================="
         over
 fi
+data_solicitada="${data_find[$id_data_solicitada]}";
+data_solicitada_sem_hora="${data_solicitada:0:10}";
+data_solicitada_timestamp=`date -d "${data_solicitada_sem_hora}" +"%s"`;
 if [ -d "$diretorio/backup-copia-$data_solicitada_sem_hora/" -a -z "$pasta" ];
     then
         echo "========================================================"
@@ -250,9 +253,6 @@ if [ -d "$diretorio/backup-copia-$data_solicitada_sem_hora/$pasta/" -a -n "$past
         echo "================================================================"
         over
 fi
-data_solicitada="${data_find[$id_data_solicitada]}";
-data_solicitada_sem_hora="${data_solicitada:0:10}";
-data_solicitada_timestamp=`date -d "${data_solicitada_sem_hora}" +"%s"`;
 for m in `find $backup/monthly -iname "$cliente.tz" | sort | cut -d'/' -f5`;
     do
         mensal[$id_mes]=$m;
@@ -388,7 +388,7 @@ fi
 case $tipo in
     c|C)
         quota_off=`quota -s $cliente 2>/dev/null | grep -o none`;
-        if [ -z "$quota_off" ];
+        if [ -z "$quota_off" -o "$quota_off" != "none" ];
             then
                 quota_maxima_do_cliente=$(quota -w $cliente | awk '/\/dev\/mapper\/work-home/ {print $4}' | tr -s "[:punct:]" " ");
                 tamanho_da_home_do_cliente=$(du -s $diretorio | awk '{print $1}' | tr -s "[:punct:]" " ");
