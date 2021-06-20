@@ -418,7 +418,7 @@ verifica_user=`id $cliente 2>/dev/null`;
 case $tipo in
     c|C)
         quota_off=`quota -s $cliente 2>/dev/null | grep -o none`;
-        if [ -z "$quota_off" -o "$quota_off" != "none" -o -n "$verifica_user" ];
+        if [ -n "$quota_off" -a "$quota_off" != "none" -o -n "$verifica_user" ];
             then
                 quota_maxima_do_cliente=$(quota -w $cliente | awk '/\/dev\/mapper\/work-home/ {print $4}' | tr -s "[:punct:]" " ");
                 tamanho_da_home_do_cliente=$(du -s $diretorio | awk '{print $1}' | tr -s "[:punct:]" " ");
