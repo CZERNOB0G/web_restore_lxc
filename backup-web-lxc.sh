@@ -239,6 +239,35 @@ fi
 data_solicitada="${data_find[$id_data_solicitada]}";
 data_solicitada_sem_hora="${data_solicitada:0:10}";
 data_solicitada_timestamp=`date -d "${data_solicitada_sem_hora}" +"%s"`;
+data=`date +%Y-%m-%d-%H-%M`;
+if [ -d "/home/marcos/backup-$cliente-$data/$data_solicitada/" -a -z "$pasta" ];
+    then
+        echo "=================================================================="
+        echo "= Já possui backup sobrescrito dessa data na sua home dessa data ="
+        echo "=================================================================="
+        over
+fi
+if [ -d "/home/marcos/backup-$cliente-$data/$data_solicitada/$pasta/" -a -n "$pasta" ];
+    then
+        echo "=========================================================================="
+        echo "= Já possui backup sobrescrito dessa data e pasta na sua home dessa data ="
+        echo "=========================================================================="
+        over
+fi
+if [ -d "$diretorio_dest/backup-$cliente-$data_solicitada_sem_hora/" -a -z "$pasta" ];
+    then
+        echo "====================================================="
+        echo "= Já possui backup cópia dessa data na home destino ="
+        echo "====================================================="
+        over
+fi
+if [ -d "$diretorio_dest/backup-$cliente-$data_solicitada_sem_hora/$pasta/" -a -n "$pasta" ];
+    then
+        echo "============================================================="
+        echo "= Já possui backup cópia dessa data e pasta na home destino ="
+        echo "============================================================="
+        over
+fi
 if [ -d "$diretorio/backup-copia-$data_solicitada_sem_hora/" -a -z "$pasta" ];
     then
         echo "========================================================"
@@ -385,10 +414,11 @@ elif [ `find $backup -iname "$data_solicitada"` == $backup/weekly/$data_solicita
             fi
             echo -e "${CHECK_MARK}";
 fi
+verifica_user=`id $cliente 2>/dev/null`;
 case $tipo in
     c|C)
         quota_off=`quota -s $cliente 2>/dev/null | grep -o none`;
-        if [ -z "$quota_off" -o "$quota_off" != "none" ];
+        if [ -z "$quota_off" -o "$quota_off" != "none" -o -n "$verifica_user" ];
             then
                 quota_maxima_do_cliente=$(quota -w $cliente | awk '/\/dev\/mapper\/work-home/ {print $4}' | tr -s "[:punct:]" " ");
                 tamanho_da_home_do_cliente=$(du -s $diretorio | awk '{print $1}' | tr -s "[:punct:]" " ");
@@ -417,36 +447,38 @@ case $tipo in
                         over
                 fi
         fi
-        echo -n "-------------> Criando pasta de copia $diretorio/backup-copia-$data_solicitada_sem_hora: ";
-        mkdir -m 755 $diretorio/backup-copia-$data_solicitada_sem_hora/
-        echo -e "${CHECK_MARK}"
         if [ -z "$pasta" ];
             then
+                echo -n "-------------> Criando pasta de copia $diretorio/backup-copia-$data_solicitada_sem_hora/ : ";
+                mkdir -m 755 -p $diretorio/backup-copia-$data_solicitada_sem_hora/
+                echo -e "${CHECK_MARK}"
                 echo -n "-------------> Restaurando cópia completa: ";
-                mv $web_restore/$cliente/ $diretorio/backup-copia-$data_solicitada_sem_hora/
+                rsync -aq $web_restore/$cliente/ $diretorio/backup-copia-$data_solicitada_sem_hora/
                 echo -e "${CHECK_MARK}"
             else
-                echo -n "-------------> Restaurando a pasta $pasta como cópia: ";
-                mv $web_restore/$cliente/$pasta/ $diretorio/backup-copia-$data_solicitada_sem_hora/
+                echo -n "-------------> Criando pasta de copia $diretorio/backup-copia-$data_solicitada_sem_hora/$pasta/ : ";
+                mkdir -m 755 -p $diretorio/backup-copia-$data_solicitada_sem_hora/$pasta/
+                echo -e "${CHECK_MARK}"
+                echo -n "-------------> Restaurando a pasta ../$pasta/ como cópia: ";
+                rsync -aq $web_restore/$cliente/$pasta/ $diretorio/backup-copia-$data_solicitada_sem_hora/$pasta/
                 echo -e "${CHECK_MARK}"
         fi
     ;;
     s|S)
-        data=`date +%Y-%m-%d-%H-%M`;
         if [ -z "$pasta" ] ;
             then
                 echo -n "-------------> Criando pasta de backup: ";
-                mkdir -m 755 -p /home/marcos/backup-$cliente-$data/$data_solicitada/$cliente/
+                mkdir -m 755 -p /home/marcos/backup-$cliente-$data/$data_solicitada/
                 echo -e "${CHECK_MARK}";
                 echo -n "-------------> Sobrescrevendo completamente a home: ";
-                mv $diretorio/* /home/marcos/backup-$cliente-$data/$data_solicitada/$cliente/
+                mv $diretorio/* /home/marcos/backup-$cliente-$data/$data_solicitada/
                 rsync -aq $web_restore/$cliente/ $diretorio/
                 echo -e "${CHECK_MARK}";
             else
                 echo -n "-------------> Criando pasta de backup: ";
                 mkdir -m 755 -p /home/marcos/backup-$cliente-$data/$data_solicitada/$pasta/
                 echo -e "${CHECK_MARK}";
-                echo -n "-------------> Sobrescrevendo a pasta $pasta: ";
+                echo -n "-------------> Sobrescrevendo a pasta ../$pasta/ : ";
                 mv $diretorio/$pasta/* /home/marcos/backup-$cliente-$data/$data_solicitada/$pasta/
                 rsync -aq $web_restore/$cliente/$pasta/ $diretorio/$pasta/
                 echo -e "${CHECK_MARK}";
@@ -460,31 +492,33 @@ case $tipo in
                 rsync -aq $web_restore/$cliente/ $diretorio/
                 echo -e "${CHECK_MARK}";
             else
-                echo -n "-------------> Incrementando a pasta $pasta: ";
+                echo -n "-------------> Incrementando a pasta ../$pasta/ : ";
                 rsync -aq $web_restore/$cliente/$pasta/ $diretorio/$pasta/
                 echo -e "${CHECK_MARK}";
         fi
     ;;
     cp|CP)
-        echo -n "-------------> Criando pasta do backup: ";
-        mkdir -m 755 /home/$destino/backup-$cliente-$data_solicitada_sem_hora/
-        echo -e "${CHECK_MARK}";
         if [ -z "$pasta" ] ;
             then
+                echo -n "-------------> Criando pasta do backup /home/$destino/backup-$cliente-$data_solicitada_sem_hora/: ";
+                mkdir -m 755 /home/$destino/backup-$cliente-$data_solicitada_sem_hora/
+                echo -e "${CHECK_MARK}";
                 echo -n "-------------> Restaurando o diretório completo como cópia em $destino: ";
-                mv $web_restore/$cliente/ /home/$destino/backup-$cliente-$data_solicitada_sem_hora/
+                rsync -aq $web_restore/$cliente/ /home/$destino/backup-$cliente-$data_solicitada_sem_hora/
                 echo -e "${CHECK_MARK}";
             else
-                echo -n "-------------> Restaurando a pasta $pasta como cópia em /home/$destino/backup-$cliente-$data_solicitada_sem_hora: ";
-                mv $web_restore/$cliente/$pasta /home/$destino/backup-$cliente-$data_solicitada_sem_hora/
+                echo -n "-------------> Criando pasta do backup : ";
+                mkdir -m 755 -p /home/$destino/backup-copia-$data_solicitada_sem_hora/$pasta/
+                echo -e "${CHECK_MARK}";
+                echo -n "-------------> Restaurando a pasta $pasta como cópia em /home/$destino/backup-$cliente-$data_solicitada_sem_hora/$pasta/ : ";
+                rsync -aq $web_restore/$cliente/$pasta/ /home/$destino/backup-$cliente-$data_solicitada_sem_hora/$pasta/
                 echo -e "${CHECK_MARK}";
         fi
     ;;
 esac
-verifica_user=`id $cliente 2>/dev/null`;
 if [ -n "$verifica_user" ];
     then
-        echo -n "-------------> Corrigindo o proprietário para $cliente: ";
+        echo -n "-------------> Corrigindo o proprietário para $cliente : ";
         chown -R $cliente: $diretorio
         echo -e "${CHECK_MARK}";
 fi
