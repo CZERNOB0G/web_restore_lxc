@@ -1,5 +1,6 @@
 #!/bin/bash
-cliente="$1";
+cliente_ini="$1";
+cliente=`echo "$cliente_ini" | sed 's/[^A-Za-z0-9\-]*//g'`;
 tipo="$2";
 id_pasta_ini=${3/#"/"/""};
 pasta=${id_pasta_ini/%"/"/""};
@@ -48,7 +49,8 @@ case $tipo in
         echo "==================================================="
         echo "Informe o nome da conta de destino neste servidor: "
         echo "==================================================="
-        read destino
+        read destino_ini
+        destino=`echo "$destino_ini" | sed 's/[^A-Za-z0-9\-]*//g'`;
         diretorio_dest="/home/$destino"
         if [ ! -d "$diretorio_dest" ];
             then
