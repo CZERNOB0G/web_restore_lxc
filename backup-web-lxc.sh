@@ -204,9 +204,9 @@ if [ -z `find $backup -iname "$cliente.tz"` > /dev/null 2>&1 ];
         echo "==================================="
         over
 fi
-echo "========================================"
-echo "= Escolha a data que deseja restaurar: ="
-echo "========================================"
+echo "===================================="
+echo "= Verificando backups disponíveis: ="
+echo "===================================="
 data_find=()
 for i in `find $backup -iname "$cliente.tz" | sort | cut -d'/' -f5`;
     do
@@ -229,7 +229,6 @@ for i in `find $backup -iname "$cliente.tz" | sort | cut -d'/' -f5`;
 done
 if [ ${#data_find[@]} -eq 0 -a -n "$pasta" ];    
     then
-        echo "=================================="
         echo "= Não têm backup para essa pasta ="
         echo "=================================="
         over
