@@ -526,10 +526,10 @@ case $tipo in
                 rsync -aq $web_restore/$cliente/ /home/$destino/backup-$cliente-completo-$data_solicitada_sem_hora/
                 echo -e "${CHECK_MARK}";
             else
-                echo -n "-------------> Criando pasta do backup : ";
+                echo -n "-------------> Criando pasta do backup /home/$destino/backup-$cliente-completo-$data_solicitada_sem_hora/$pasta/: ";
                 mkdir -m 755 -p /home/$destino/backup-$cliente-parcial-$data_solicitada_sem_hora/$pasta/
                 echo -e "${CHECK_MARK}";
-                echo -n "-------------> Restaurando a pasta $pasta como cópia em /home/$destino/backup-$cliente-parcial-$data_solicitada_sem_hora/$pasta/: ";
+                echo -n "-------------> Restaurando a pasta $pasta como cópia: ";
                 rsync -aq $web_restore/$cliente/$pasta/ /home/$destino/backup-$cliente-parcial-$data_solicitada_sem_hora/$pasta/
                 echo -e "${CHECK_MARK}";
         fi
