@@ -235,7 +235,8 @@ if [ ${#data_find[@]} -eq 0 -a -n "$pasta" ];
         over
 fi
 echo "========================================"
-read id_data_solicitada
+read id_data_solicitada_ini
+id_data_solicitada=`echo "$id_data_solicitada_ini" |  sed 's/[^0-9]*//g'`;
 if [ -z ${data_find[$id_data_solicitada]} ];
     then
         echo "=================="
