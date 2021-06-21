@@ -487,21 +487,16 @@ case $tipo in
                 teste_destino=`ls -lA $diretorio/* 2>/dev/null`;
                 if [ -n "$teste_destino" ];
                     then
-                        echo -n "-------------> Criando pasta de backup: ";
                         mkdir -m 755 -p /home/marcos/backup-$cliente-$data/$data_solicitada/
-                        echo -e "${CHECK_MARK}";
                         mv $diretorio/* /home/marcos/backup-$cliente-$data/$data_solicitada/
                 fi
                 rsync -aq $web_restore/$cliente/ $diretorio/
                 echo -e "${CHECK_MARK}";
             else
-                echo -n "-------------> Sobrescrevendo a pasta ../$pasta/: ";
                 teste_destino=`ls -lA $diretorio/$pasta/* 2>/dev/null`;
                 if [ -n "$teste_destino" ];
                     then
-                        echo -n "-------------> Criando pasta de backup: ";
                         mkdir -m 755 -p /home/marcos/backup-$cliente-$data/$data_solicitada/$pasta/
-                        echo -e "${CHECK_MARK}";
                         mv $diretorio/$pasta/* /home/marcos/backup-$cliente-$data/$data_solicitada/$pasta/
                 fi
                 rsync -aq $web_restore/$cliente/$pasta/ $diretorio/$pasta/
