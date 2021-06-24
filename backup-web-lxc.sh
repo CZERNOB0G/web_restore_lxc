@@ -154,7 +154,7 @@ case $tipo in
     ;;
 esac
 diretorio="/home/$cliente"
-if [ ! -d "$diretorio" ];
+if [ ! -d "$diretorio" -a "${tipo^^}" != "SCP" ];
     then
         echo "================================="
         echo "= Este cliente não possui home  ="
