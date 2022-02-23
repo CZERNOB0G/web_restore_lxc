@@ -1,6 +1,6 @@
 #!/bin/bash
 cliente_ini="$1";
-cliente=`echo "$cliente_ini" | sed 's/[^a-z0-9\-\_]*//g'`;
+cliente=`echo "$cliente_ini" | sed 's/[^a-z0-9\_-]*//g'`;
 tipo="$2";
 id_pasta_ini=${3/#"/"/""};
 pasta=${id_pasta_ini/%"/"/""};
@@ -495,6 +495,7 @@ case $tipo in
                 rsync -aq $web_restore/$cliente/ $diretorio/
                 echo -e "${CHECK_MARK}";
             else
+                echo -n "-------------> Sobrescrevendo a pasta ../$pasta/: "
                 teste_destino=`ls -lA $diretorio/$pasta/* 2>/dev/null`;
                 if [ -n "$teste_destino" ];
                     then
